@@ -1,0 +1,7 @@
+modules:
+  webtrigger:
+    - key: demand
+      function: sync-demand
+  function:
+    - key: sync-demand
+      handler: /trigger/syncDemand.js
