@@ -1,7 +1,7 @@
 modules:
   webtrigger:
     - key: demand
-      function: sync-demand
+      function: sync-oa-demand
   function:
-    - key: sync-demand
-      handler: /trigger/syncDemand.js
+    - key: sync-oa-demand
+      handler: /trigger/syncOaDemand.js
