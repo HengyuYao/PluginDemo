@@ -53,7 +53,7 @@ try {
     onlinetime, // 上线日期
     application_date, // 申请日期
     changeType, // 变更类型
-    business_requirement_number, // 业务需求标题
+    business_requirement_number, // 业务需求编号
   } = releaseApprovalItem?.values ?? {};
 
   printLogs("查询系统上线计划申请单事项类型");
@@ -66,8 +66,9 @@ try {
   const myApp = await apis.getData(false, "App", { key: appKey });
 
   printLogs("生成批量创建系统上线计划申请单事项请求");
+
   // 生成创建系统上线计划申请单请求
-  const createSystemReleaseApprovals = requirement_relate_systems?.map(
+  const createSystemReleaseApprovalRequests = requirement_relate_systems?.map(
     (relateSystemId) => {
       return new Promise(async (resolve, reject) => {
         // 获取到系统类型事项数据
@@ -124,14 +125,17 @@ try {
         // 新建系统上线计划申请单
         try {
           printLogs(`开始创建 ${systemSpaceId} 下的系统上线计划申请单事项`);
-          await apis.saveItemWithKey(systemReleaseApproval);
+
+          const createResultParse = await apis.saveItemWithKey(systemReleaseApproval);
+
+          const createResult = createResultParse.toJSON();
 
           printLogs(
             "系统上线计划申请单事项创建成功，创建结果为",
-            systemReleaseApproval
+            createResult
           );
 
-          resolve(systemReleaseApproval);
+          resolve(createResult);
         } catch (createError) {
           reject(createError);
         }
@@ -140,9 +144,16 @@ try {
   );
 
   printLogs("开始整合不同空间下的系统上线计划申请单事项信息并依次创建");
-  await Promise.all(createSystemReleaseApprovals);
+
+  const createSystemReleaseApprovalsResult = await Promise.all(createSystemReleaseApprovalRequests);
 
   printLogs("所有系统上线计划申请单事项数据创建完成");
+
+  return {
+    success: true,
+    message: "所有系统上线计划申请单事项数据创建完成",
+    data: createSystemReleaseApprovalsResult,
+  };
 } catch (error) {
   return error;
 }

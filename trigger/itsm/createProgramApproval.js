@@ -56,136 +56,141 @@ try {
   // 获取到插件信息，用于创建事项
   const myApp = await apis.getData(false, "App", { key: appKey });
 
-  const createItemRequests = associated_business_requirement?.reduce(
-    async (requests, requirementId) => {
-      printLogs(
-        `查询 ${releaseProgramApprovalId} 投产变更审批单关联的 ${requirementId} 业务需求数据`
-      );
+  // 生成创建投产变更审批单事项数组
+  const createProgramApprovalRequests = associated_business_requirement?.map(
+    (requirementId) => {
+      return new Promise(async () => {
+        printLogs(
+          `查询 ${releaseProgramApprovalId} 投产变更审批单关联的 ${requirementId} 业务需求数据`
+        );
 
-      const businessRequirementParse = await apis.getData(false, "Item", {
-        objectId: requirementId,
+        const businessRequirementParse = await apis.getData(false, "Item", {
+          objectId: requirementId,
+        });
+
+        const businessRequirement = businessRequirementParse.toJSON();
+
+        printLogs(`${requirementId} 业务需求数据查询完毕`, businessRequirement);
+
+        const {
+          objectId: businessRequirementId,
+          ancestors: businessRequirementAncestors,
+          name: businessRequirementName,
+          values: {
+            user_introducer, // 需求提出人
+            dropdown_business_department, // 业务部门
+          } = {},
+        } = businessRequirement;
+
+        printLogs(`查询 ${requirementId} 业务需求下的上线计划申请单事项数据`);
+
+        // 业务需求事项下级事项的ancestor数据
+        const ancestorsUnderBusinessRequirement = [
+          ...businessRequirementAncestors,
+          businessRequirementId,
+        ];
+
+        // 通过 Parse.Query 查询业务需求下的上线计划申请单事项数据
+        const itemParseQuery = await apis.getParseQuery(false, "Item");
+
+        console.log(`ancestors:`, ancestorsUnderBusinessRequirement);
+        console.log("releaseApprovalType", releaseApprovalType);
+
+        const [releaseApprovalParse] = await itemParseQuery
+          .equalTo("itemType", releaseApprovalType?.id) // 上线计划申请单事项类型
+          .containedIn("ancestors", ancestorsUnderBusinessRequirement) // 上线计划申请单挂载在业务需求下
+          .findAll({ sessionToken });
+
+        const releaseApproval = releaseApprovalParse.toJSON();
+
+        printLogs(
+          `${requirementId} 业务需求下的上线计划申请单事项数据查询完成，数据为`,
+          releaseApproval
+        );
+
+        // 解析出需要的从上线计划申请单中获取的数据
+        const {
+          tenant,
+          workspace,
+          objectId: releaseApprovalId,
+          values: {
+            emergency_degree, // 紧急程度
+          } = {},
+        } = releaseApproval;
+
+        try {
+          printLogs(
+            `开始整合 ${requirementId} 业务需求下要创建的投产变更审批单事项数据`
+          );
+          console.log("sessionToken", sessionToken);
+          console.log("global", global);
+          // 投产变更审批单事项value
+          const releaseProgramValues = {
+            user_introducer, // 业务提出人
+            emergency_degree,
+            dropdown_business_department, // 业务部门
+            application_date: +new Date(), // 申请日期
+            demand_leader: releaseProgramApprovalCreatedBy, // 需求牵头人
+            online_plan_risk_assessment: [releaseApprovalId], // 上线计划申请单
+            associated_product_change_apply_number: ItemCode, // 投产变更申请单事项编号
+          };
+
+          // 获得事项类型parse对象
+          const ReleaseProgramItem = await apis.getParseObject(false, "Item");
+
+          ReleaseProgramItem.set({
+            tenant, // 沿用当前空间的租户
+            workspace, // 沿用当前空间
+            itemType: releaseProgramType, // 事项类型
+            // 设置层级关系，在上线计划申请单的下一层
+            ancestors: ancestorsUnderBusinessRequirement,
+            ancestorsCount: ancestorsUnderBusinessRequirement?.length,
+            // 事项名称，由系统名称-上线计划申请单名称组成
+            name: `投产变更审批单-${businessRequirementName}`,
+            values: releaseProgramValues,
+            createdBy: myApp.toJSON().createdBy,
+          });
+
+          printLogs(
+            `${requirementId} 业务需求下的投产变更审批单事项数据整合完毕，数据为`,
+            ReleaseProgramItem
+          );
+
+          printLogs(`开始创建 ${requirementId} 下的投产变更审批单事项`);
+
+          const releaseProgramApproval = await apis.saveItemWithKey(
+            ReleaseProgramItem
+          );
+
+          printLogs(
+            `${requirementId} 投产变更审批单事项创建成功，创建结果为`,
+            releaseProgramApproval
+          );
+
+          resolve(releaseProgramApproval);
+        } catch (err) {
+          reject(err);
+        }
       });
-
-      const businessRequirement = businessRequirementParse.toJSON();
-
-      printLogs(`${requirementId} 业务需求数据查询完毕`, businessRequirement);
-
-      const {
-        objectId: businessRequirementId,
-        ancestors: businessRequirementAncestors,
-        name: businessRequirementName,
-        values: {
-          user_introducer, // 需求提出人
-          dropdown_business_department, // 业务部门
-        } = {},
-      } = businessRequirement;
-
-      printLogs(`查询 ${requirementId} 业务需求下的上线计划申请单事项数据`);
-
-      // 业务需求事项下级事项的ancestor数据
-      const ancestorsUnderBusinessRequirement = [
-        ...businessRequirementAncestors,
-        businessRequirementId,
-      ];
-
-      // 通过 Parse.Query 查询业务需求下的上线计划申请单事项数据
-      const itemParseQuery = await apis.getParseQuery(false, "Item");
-
-      console.log(`ancestors:`, ancestorsUnderBusinessRequirement);
-      console.log("releaseApprovalType", releaseApprovalType);
-
-      const [releaseApprovalParse] = await itemParseQuery
-        .equalTo("itemType", releaseApprovalType?.id) // 上线计划申请单事项类型
-        .containedIn("ancestors", ancestorsUnderBusinessRequirement) // 上线计划申请单挂载在业务需求下
-        .includeAll()
-        .findAll({ sessionToken });
-
-      const releaseApproval = releaseApprovalParse.toJSON();
-
-      printLogs(
-        `${requirementId} 业务需求下的上线计划申请单事项数据查询完成，数据为`,
-        releaseApproval
-      );
-
-      // 解析出需要的从上线计划申请单中获取的数据
-      const {
-        tenant,
-        workspace,
-        objectId: releaseApprovalId,
-        values: {
-          emergency_degree, // 紧急程度
-        } = {},
-      } = releaseApproval;
-
-      requests.concat(
-        new Promise(async (resolve, reject) => {
-          try {
-            printLogs("开始整合要创建的投产变更审批单事项数据");
-
-            // 投产变更审批单事项value
-            const releaseProgramValues = {
-              user_introducer, // 业务提出人
-              emergency_degree,
-              dropdown_business_department, // 业务部门
-              application_date: +new Date(), // 申请日期
-              demand_leader: releaseProgramApprovalCreatedBy, // 需求牵头人
-              online_plan_risk_assessment: [releaseApprovalId], // 上线计划申请单
-              associated_product_change_apply_number: ItemCode, // 投产变更申请单事项编号
-            };
-
-            // 获得事项类型parse对象
-            const ReleaseProgramItem = await apis.getParseObject(false, "Item");
-
-            ReleaseProgramItem.set({
-              tenant, // 沿用当前空间的租户
-              workspace, // 沿用当前空间
-              itemType: releaseProgramType, // 事项类型
-              // 设置层级关系，在上线计划申请单的下一层
-              ancestors: ancestorsUnderBusinessRequirement,
-              ancestorsCount: ancestorsUnderBusinessRequirement?.length,
-              // 事项名称，由系统名称-上线计划申请单名称组成
-              name: `投产变更审批单-${businessRequirementName}`,
-              values: releaseProgramValues,
-              createdBy: myApp.toJSON().createdBy,
-            });
-
-            printLogs(
-              "投产变更审批单事项数据整合完毕，数据为",
-              ReleaseProgramItem
-            );
-
-            printLogs(`开始创建 ${requirementId} 下的投产变更审批单事项`);
-
-            const releaseProgramApproval = await apis.saveItemWithKey(
-              ReleaseProgramItem
-            );
-
-            printLogs(
-              "投产变更审批单事项创建成功，创建结果为",
-              releaseProgramApproval
-            );
-
-            resolve(releaseProgramApproval);
-          } catch (err) {
-            reject(err);
-          }
-        })
-      );
-
-      return requests;
     },
     []
   );
 
-  printLogs("开始在不同业务需求下创建投产变更审批单");
+  printLogs(
+    "开始在投产变更申请单关联的业务需求下整合相关数据并创建投产变更审批单"
+  );
 
-  console.log(createItemRequests);
+  const createProgramApprovalsResult = await Promise.all(
+    createProgramApprovalRequests
+  );
 
-  Promise.all(createItemRequests)
-    .then(() => {
-      printLogs("所有投产变更审批单事项数据创建完成");
-    })
-    .catch((createError) => createError);
+  printLogs("所有投产变更审批单事项数据创建完成");
+
+  return {
+    success: true,
+    message: "所有投产变更审批单事项数据创建完成",
+    data: createProgramApprovalsResult,
+  };
 } catch (error) {
   return error;
 }
