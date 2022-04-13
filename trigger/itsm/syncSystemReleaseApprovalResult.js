@@ -28,6 +28,7 @@ try {
   if (evaluation_files?.length) {
     printLogs("开始获取评估结果中传递的附件数据");
 
+
     const getEvaluationFiles = evaluation_files?.map((file) => {
       return new Promise(async (resolve, reject) => {
         // 获取文件数据

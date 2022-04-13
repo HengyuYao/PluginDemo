@@ -11,20 +11,20 @@ function printLogs(message, data) {
 }
 
 try {
-  const { objectId: releaseApprovalId } = body;
+  const { objectId: programApprovalId } = body;
 
-  printLogs(`获取Id为 ${releaseApprovalId} 的上线计划申请单事项数据`);
-  // 获取上线计划申请单事项
-  const releaseApprovalParse = await apis.getData(false, "Item", {
-    objectId: releaseApprovalId,
+  printLogs(`获取Id为 ${programApprovalId} 的投产变更审批单事项数据`);
+  // 获取投产变更审批单事项
+  const programApprovalParse = await apis.getData(false, "Item", {
+    objectId: programApprovalId,
   });
 
-  const releaseApprovalItem = releaseApprovalParse.toJSON();
+  const releaseApprovalItem = programApprovalParse.toJSON();
 
-  printLogs("上线计划申请单事项数据获取完毕");
+  printLogs("投产变更审批单事项数据获取完毕");
 
-  printLogs(`获取 ${releaseApprovalId} 上线计划申请单事项所属业务需求数据`);
-  // 获取上线计划申请单事项的父业务需求事项
+  printLogs(`获取 ${programApprovalId} 投产变更审批单事项所属业务需求数据`);
+  // 获取投产变更审批单事项的父业务需求事项
   const [, businessRequirementId] = releaseApprovalItem?.ancestors;
 
   const businessRequirementParse = await apis.getData(false, "Item", {
@@ -33,7 +33,7 @@ try {
 
   const businessRequirement = businessRequirementParse.toJSON();
 
-  printLogs("上线计划申请单所属业务需求事项数据获取完毕");
+  printLogs("投产变更审批单所属业务需求事项数据获取完毕");
 
   // 获取业务需求关联的系统事项
   const {
@@ -46,7 +46,7 @@ try {
     requirement_relate_systems
   );
 
-  // 系统上线计划申请单需要继承自上线计划申请单的数据
+  // 系统投产变更审批单需要继承自投产变更审批单的数据
   const {
     emergency_degree, // 紧急程度
     requirement_content, // 需求内容
@@ -56,17 +56,17 @@ try {
     business_requirement_number, // 业务需求标题
   } = releaseApprovalItem?.values ?? {};
 
-  printLogs("查询系统上线计划申请单事项类型");
-  // 获取系统上线计划申请单事项类型
+  printLogs("查询系统投产变更审批单事项类型");
+  // 获取系统投产变更审批单事项类型
   const systemReleaseApprovalType = await apis.getData(false, "ItemType", {
-    name: "系统上线计划申请单",
+    name: "系统投产变更审批单",
   });
 
   // 获取到插件信息，用于创建事项
   const myApp = await apis.getData(false, "App", { key: appKey });
 
-  printLogs("生成批量创建系统上线计划申请单事项请求");
-  // 生成创建系统上线计划申请单请求
+  printLogs("生成批量创建系统投产变更审批单事项请求");
+  // 生成创建系统投产变更审批单请求
   const createSystemReleaseApprovals = requirement_relate_systems?.map(
     (relateSystemId) => {
       return new Promise(async (resolve, reject) => {
@@ -83,11 +83,11 @@ try {
         // 获得事项类型parse对象
         const systemReleaseApproval = await apis.getParseObject(false, "Item");
 
-        // 系统上线计划申请单事项的字段值
+        // 系统投产变更审批单事项的字段值
         const systemReleaseApprovalValues = {
           // 继承业务需求的标题
           business_requirement_name,
-          // 继承上线计划申请单的值
+          // 继承投产变更审批单的值
           emergency_degree, // 紧急程度
           requirement_content, // 需求内容
           onlinetime, // 上线日期
@@ -107,30 +107,29 @@ try {
             objectId: systemSpaceId,
           }, // 创建到对应的空间
           itemType: systemReleaseApprovalType, // 事项类型
-          // 设置层级关系，在上线计划申请单的下一层
-          ancestors: [...releaseApprovalItem?.ancestors, releaseApprovalId],
+          // 设置层级关系，在投产变更审批单的下一层
+          ancestors: [...releaseApprovalItem?.ancestors, programApprovalId],
           ancestorsCount: 3,
-          // 事项名称，由系统名称-上线计划申请单名称组成
+          // 事项名称，由系统名称-投产变更审批单名称组成
           name: `${relateSystem?.name}-${releaseApprovalItem?.name}`,
           values: systemReleaseApprovalValues,
           createdBy: myApp.toJSON().createdBy,
         });
 
         printLogs(
-          `${systemSpaceId} 空间下需要创建的系统上线计划申请单数据整合完毕，完整数据为`,
+          `${systemSpaceId} 空间下需要创建的系统投产变更审批单数据整合完毕，完整数据为`,
           systemReleaseApproval
         );
 
-        // 新建系统上线计划申请单
+        // 新建系统投产变更审批单
         try {
-          printLogs(`开始创建 ${systemSpaceId} 下的系统上线计划申请单事项`);
+          printLogs(`开始创建 ${systemSpaceId} 下的系统投产变更审批单事项`);
           await apis.saveItemWithKey(systemReleaseApproval);
 
           printLogs(
-            "系统上线计划申请单事项创建成功，创建结果为",
+            "系统投产变更审批单事项创建成功，创建结果为",
             systemReleaseApproval
           );
-
           resolve(systemReleaseApproval);
         } catch (createError) {
           reject(createError);
@@ -139,10 +138,11 @@ try {
     }
   );
 
-  printLogs("开始整合不同空间下的系统上线计划申请单事项信息并依次创建");
+  printLogs("开始整合不同空间下的系统投产变更审批单事项信息并依次创建");
+
   await Promise.all(createSystemReleaseApprovals);
 
-  printLogs("所有系统上线计划申请单事项数据创建完成");
+  printLogs("所有系统投产变更审批单事项数据创建完成");
 } catch (error) {
   return error;
 }

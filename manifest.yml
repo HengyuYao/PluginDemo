@@ -1,7 +1,19 @@
 modules:
   webtrigger:
-    - key: demand
-      function: sync-demand
+    - key: createSystemReleaseApproval # 创建系统上线计划申请单
+      function: create-SystemReleaseApproval
+    - key: createProgramApproval # 创建投产变更审批单
+      function: create-ProgramApproval
+    - key: createSystemProgramApproval # 创建系统投产变更审批单
+      function: create-SystemProgramApproval
+    - key: syncSystemProgramApproval # 同步系统投产变更审批单审批结果
+      function: sync-SystemProgramApproval
   function:
-    - key: sync-demand
-      handler: /trigger/syncDemand.js
+    - key: create-SystemReleaseApproval # 创建系统上线计划申请单
+      handler: /trigger/itsm/createSystemReleaseApproval.js
+    - key: create-ProgramApproval # 创建投产变更审批单
+      handler: /trigger/itsm/createProgramApproval.js
+    - key: create-SystemProgramApproval # 创建系统投产变更审批单
+      handler: /trigger/itsm/createSystemProgramApproval.js
+    - key: sync-SystemProgramApproval # 同步系统投产变更审批单审批结果
+      handler: /trigger/itsm/syncSystemProgramApproval.js
