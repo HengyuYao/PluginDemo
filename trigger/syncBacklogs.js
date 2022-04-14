@@ -389,15 +389,11 @@ function buildUrlSm4(userId, redirectURL) {
     }
   }
 
-  let encryptContent = {
+  const encryptContent = JSON.stringify({
     userId: userId,
     requestTime: 0,
     redirectURL: redirectURL,
-  };
-
-  if (typeof item !== "string") {
-    encryptContent = JSON.stringify(item);
-  }
+  });
 
   return sm4(encryptContent, "86C63180C2806ED1F47B859DE501215B", 1);
 }
