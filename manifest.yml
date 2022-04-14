@@ -1,7 +1,8 @@
 modules:
   webtrigger:
-    - key: demand
-      function: sync-demand
+    # 发送待办消息列表
+    - key: syncBacklogs
+      function: sync-backlogs
   function:
-    - key: sync-demand
-      handler: /trigger/syncDemand.js
+    - key: sync-backlogs
+      handler: /trigger/syncBacklogs.js
