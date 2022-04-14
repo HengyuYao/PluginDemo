@@ -400,18 +400,16 @@ function buildUrlSm4(userId, redirectURL) {
 
 //生成uuid
 function uuid() {
-  var s = [];
-  var hexDigits = "0123456789abcdef";
-  for (var i = 0; i < 18; i++) {
+  const s = [];
+  const hexDigits = "0123456789abcdef";
+  for (let i = 0; i < 18; i++) {
     s[i] = hexDigits.substr(Math.floor(Math.random() * 0x10), 1);
   }
   s[14] = hexDigits.substr((s[19] & 0x3) | 0x8, 1); // bits 6-7 of the clock_seq_hi_and_reserved to 01
   s[8] = s[13] = "-";
 
-  var uuid = s.join("");
-  return uuid;
+  return s.join("");
 }
-// uuid() // "ffb7cefd-02cb-4853"
 
 //调用批量推送待办事务的接口所需参数sign值
 const sign = global.sign;
@@ -421,13 +419,15 @@ const OA_PUSH_HOST = global.OA_PUSH_HOST;
 const sysCode = global.sysCode;
 //部门名称TODO:待文双确定
 const deptName = global.deptName;
+// one的登录地址
+const DEVOPS_HOST = global.ONE_LOGIN_HOST || "http://devops.tsp.hsb.biz";
 //代办事项类型 1:待办,2:待处,3:待批,4待阅
 const type = 1;
 //事项缓急程度 0特急，1加急，2普通
 const Level = 2;
 
 try {
-  const { itemId, title } = body;
+  const { itemId, itemKey, title, workspace } = body;
 
   printLogs(`接收到事项 ${itemId} 的标题为 ${title} 的待办发送请求`);
 
@@ -443,7 +443,7 @@ try {
   printLogs("开始事项的当前处理人列表数据");
 
   // 每一个用户的 username 由 username(nickname) 组成， 从中拆解出实际的 username
-  const userList = userListResult?.data?.map(
+  const userList = userListResult?.map(
     ({ username }) => username.split("(")[0]
   );
 
@@ -451,17 +451,34 @@ try {
 
   const REQUEST_PARAMS = {
     sign,
-    backList: userList.map((user) => ({
-      type, // 待办类型
-      title, // 待办标题
-      Level, // 待办紧急程度
-      sysCode, // 系统标识
-      deptName, // 部门名称
-      userCode: user.username, // 待办接收人
-      affairId: user.username + "-" + uuid(), // 待办标识，唯一ID
-      url: buildUrlSm4(user.username, global.redirectURL), // 跳转地址
-      occurrenctTime: new Date().toLocaleString().replaceAll("/", "-"),
-    })),
+    backList: userList.map((username) => {
+      printLogs(`整合加密向 ${username} 用户传递待办信息的单点登录路径`);
+
+      // proxima事项详情页面
+      const itemDetailPage = `${DEVOPS_HOST}/project/osc/workspaces/${workspace}/item/${itemKey}`;
+
+      printLogs(`生成事项详情页面地址为`, itemDetailPage);
+
+      printLogs('加密用户信息与事项详情地址信息');
+
+      const cryptoSign = buildUrlSm4(username, itemDetailPage);
+
+      const redirectUrl = `${DEVOPS_HOST}/directLogin?sign=${cryptoSign}`;
+
+      printLogs('将加密信息与One登陆登录地址组成待办跳转地址，结果为', redirectUrl);
+
+      return {
+        type, // 待办类型
+        title, // 待办标题
+        Level, // 待办紧急程度
+        sysCode, // 系统标识
+        deptName, // 部门名称
+        url: redirectUrl, // 跳转地址
+        userCode: username, // 待办接收人
+        affairId: username + "-" + uuid(), // 待办标识，唯一ID
+        occurrenctTime: new Date().toLocaleString().replace("/", "-"),
+      };
+    }),
   };
 
   printLogs("待办信息数据整合完成，数据为", REQUEST_PARAMS);
