@@ -388,13 +388,13 @@ function uuid() {
 
 
 //调用批量推送待办事务的接口所需参数sign值
-const sign = "123456789";
+const sign = global.sign;
 //批量推送待办事务的接口地址
-const OA_PUSH_HOST = "http://38.63.132.58:8090/aikm/ui?moduleId=5&portal.url=/portlet/example-front!integrationPending.portlet"
+const OA_PUSH_HOST = global.OA_PUSH_HOST
 //系统来源代码TODO:待文双确定
-const sysCode = 1;
+const sysCode = global,sysCode;
 //部门名称TODO:待文双确定
-const deptName = "OSC";
+const deptName = global.deptName;
 //代办事项类型 1:待办,2:待处,3:待批,4待阅
 const type = 1;
 //事项缓急程度 0特急，1加急，2普通
@@ -402,8 +402,17 @@ const Level = 2;
 
 try {
 const {itemId, title} = body;
+const USER_REQUEST_PARAMS = {
+    method: 'GET',
+    url: `/parse/api/workflows/` + itemId + `/available-users`,
+    data: null
+}
 //TODO:假数据等待坚心接口替换
-const userList = {
+const userListResult = await apis.requestCoreApi('GET',`/parse/api/workflows/` + itemId + `/available-users`,null)
+const userList = userListResult.map(user=> ({
+    username: user.username.slice(0,user.username.indexOf("(")),
+}));
+{
     data:[
     {username: "user1"},
     {username: "user2"}
@@ -422,13 +431,13 @@ REQUEST_PARAMS.backList = userList.data.map(user => ({
     deptName:deptName,
     type: type,
     Level: Level,
-    occurrenctTime: new Date().toLocaleString(),
+    occurrenctTime: new Date().toLocaleString().replaceAll("/","-"),
 }));
 
 const result = await apis.post(OA_PUSH_HOST,REQUEST_PARAMS,{
     "Content-Type": "application/json;charset=utf-8",
   })
-
+  printLogs("徽商待办事项推送完成，推送参数为", REQUEST_PARAMS);
   printLogs("徽商待办事项推送完成，徽商响应信息为", result?.data);
 
   return{
