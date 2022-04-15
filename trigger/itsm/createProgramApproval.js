@@ -109,9 +109,6 @@ try {
         // 通过 Parse.Query 查询业务需求下的上线计划申请单事项数据
         const itemParseQuery = await apis.getParseQuery(false, "Item");
 
-        console.log(`ancestors:`, ancestorsUnderBusinessRequirement);
-        console.log("releaseApprovalType", releaseApprovalType);
-
         const [releaseApprovalParse] = await itemParseQuery
           .equalTo("itemType", releaseApprovalType?.id) // 上线计划申请单事项类型
           .containedIn("ancestors", ancestorsUnderBusinessRequirement) // 上线计划申请单挂载在业务需求下
@@ -131,6 +128,7 @@ try {
           objectId: releaseApprovalId,
           values: {
             emergency_degree, // 紧急程度
+            onlinetime, // 上线日期
           } = {},
         } = releaseApproval;
 
@@ -148,7 +146,7 @@ try {
             demand_leader: [releaseProgramApplyCreator], // 需求牵头人
             online_plan_risk_assessment: [releaseApprovalId], // 上线计划申请单
             associated_product_change_apply_number: releaseProgramApplyKey, // 投产变更申请单事项key
-            date_implementation_date: +new Date(), // 实施日期
+            date_implementation_date: onlinetime, // 实施日期，与上线计划申请单的上线日期相同
             whether_part_online: "否", // 是否部分上线
             radio_online_report: "否", // 是否上线报备
           };

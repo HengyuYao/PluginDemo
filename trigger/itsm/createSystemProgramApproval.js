@@ -46,17 +46,50 @@ try {
 
   // 系统投产变更审批单需要继承自投产变更审批单的数据
   const {
-    demand_leader, // 需求牵头人
-    associated_product_change_apply_number, // 投产变更申请单编号
-    online_plan_risk_assessment, // 上线计划申请单编号
-    application_date, // 申请日期
-    date_implementation_date, // 实施日期
-  } = programApprovalItem?.values ?? {};
+    values: {
+      demand_leader, // 需求牵头人
+      associated_product_change_apply_number, // 投产变更申请单编号
+      application_date, // 申请日期
+      date_implementation_date, // 实施日期
+    },
+    ancestors: programApprovalAncestors,
+  } = programApprovalItem;
 
-  printLogs("查询系统投产变更审批单事项类型");
+  printLogs("查询投产变更审批单对应的上线计划申请单事项数据");
+
+  const releaseApprovalType = await apis.getData(false, "ItemType", {
+    name: "上线计划申请单",
+  });
+
+  const releaseApprovalQuery = await apis.getParseQuery(false, "Item");
+
+  const [releaseApprovalParse] = await releaseApprovalQuery
+    .equalTo("itemType", releaseApprovalType?.id) // 上线计划申请单事项类型
+    .containedIn("ancestors", programApprovalAncestors) // 上线计划申请单挂载在业务需求下
+    .findAll({ sessionToken });
+
+  const releaseApproval = releaseApprovalParse.toJSON();
+
+  const {
+    ancestors: releaseApprovalAncestors, // 上线计划申请单层级
+    objectId: releaseApprovalId, // 上线计划申请单事项ID
+  } = releaseApproval;
+
+  printLogs(
+    "投产变更审批单对应的上线计划申请单数据查询完毕，数据为",
+    releaseApproval
+  );
+
+  printLogs("查询系统投产变更审批单及系统上线计划申请单事项类型");
+
   // 获取系统投产变更审批单事项类型
   const systemProgramApprovalType = await apis.getData(false, "ItemType", {
     name: "系统投产变更审批单",
+  });
+
+  // 获取系统上线计划申请单事项类型
+  const systemReleaseApprovalType = await apis.getData(false, "ItemType", {
+    name: "系统上线计划申请单",
   });
 
   // 获取到插件信息，用于创建事项
@@ -90,6 +123,29 @@ try {
 
         printLogs(`${relateSystemId} 系统事项绑定的空间ID为`, systemSpaceId);
 
+        printLogs("查询系统投产变更审批单事项对应的系统上线计划申请单事项数据");
+
+        const systemReleaseApprovalQuery = await apis.getParseQuery(
+          false,
+          "Item"
+        );
+
+        const [systemReleaseApprovalParse] = await systemReleaseApprovalQuery
+          .equalTo("itemType", systemReleaseApprovalType?.id)
+          .equalTo("values.system_identification", system_identification) // 相同的系统标识
+          .containedIn("ancestors", [
+            ...releaseApprovalAncestors,
+            releaseApprovalId,
+          ]) // 系统上线计划申请单的层级
+          .find({ sessionToken });
+
+        const systemReleaseApproval = systemReleaseApprovalParse.toJSON();
+
+        printLogs(
+          "系统投产变更审批单对应的系统上线计划申请单数据查询完成，数据为",
+          systemReleaseApproval
+        );
+
         // 获得事项类型parse对象
         const systemProgramApproval = await apis.getParseObject(false, "Item");
 
@@ -100,13 +156,13 @@ try {
           // 继承投产变更审批单的值
           demand_leader, // 需求牵头人
           associated_product_change_apply_number, // 投产变更申请单编号
-          online_plan_risk_assessment, // 上线计划申请单编号
           application_date, // 申请日期
           date_implementation_date, // 实施日期
           // 继承自系统事项的值
           system_identification, // 系统标识
           system_manager, // 系统负责人
           // 系统投产变更审批单自己的字段
+          online_plan_risk_assessment: [systemReleaseApproval?.objectId], // 系统投产变更审批单对应的系统上线计划申请单编号
           emergency_degree: "标准", // 紧急程度，默认标准
           radio_online_report: "否", // 是否上线报备，默认否
           product_change_type: ["变更"], // 投产变更类型，默认变更

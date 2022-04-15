@@ -3,15 +3,21 @@ modules:
     # 创建系统上线计划申请单
     - key: createSystemReleaseApproval
       function: create-SystemReleaseApproval
+    # 接收ITSM同步的系统上线申请单审批结果
+    - key: receiveSystemReleaseAuditResult
+      function: receive-SystemReleaseAuditResult
     # 创建投产变更审批单
     - key: createProgramApproval
       function: create-ProgramApproval
     # 创建系统投产变更审批单
     - key: createSystemProgramApproval
       function: create-SystemProgramApproval
-    # 同步系统投产变更审批单审批结果
-    - key: syncSystemProgramApproval
-      function: sync-SystemProgramApproval
+    # 向ITSM同步系统投产变更审批单列表
+    - key: asyncSystemProgramApprovals
+      function: async-SystemProgramApprovals
+    # 接收ITSM同步的系统投产变更审批单审批结果
+    - key: receiveSystemProgramAuditResult
+      function: receive-SystemProgramAuditResult
     # 发送待办消息列表
     - key: syncBacklogs
       function: sync-backlogs
@@ -19,15 +25,21 @@ modules:
     # 创建系统上线计划申请单
     - key: create-SystemReleaseApproval
       handler: /trigger/itsm/createSystemReleaseApproval.js
+    # 接收ITSM同步的系统上线申请单审批结果
+    - key: receive-SystemReleaseAuditResult
+      handler: /trigger/itsm/receiveSystemReleaseAuditResult.js
     # 创建投产变更审批单
     - key: create-ProgramApproval
       handler: /trigger/itsm/createProgramApproval.js
     # 创建系统投产变更审批单
     - key: create-SystemProgramApproval
       handler: /trigger/itsm/createSystemProgramApproval.js
-    # 同步系统投产变更审批单审批结果
-    - key: sync-SystemProgramApproval
-      handler: /trigger/itsm/syncSystemProgramApproval.js
+    # 向ITSM同步系统投产变更审批单列表
+    - key: async-SystemProgramApprovals
+      handler: /trigger/itsm/asyncSystemProgramApprovals.js
+    # 接收ITSM同步的系统投产变更审批单审批结果
+    - key: receive-SystemProgramAuditResult
+      handler: /trigger/itsm/receiveSystemProgramAuditResult.js
     # 发送待办消息列表
     - key: sync-backlogs
       handler: /trigger/oa/syncBacklogs.js

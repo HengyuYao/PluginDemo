@@ -12,7 +12,7 @@ function printLogs(message, data) {
 
 try {
   const {
-    item_id: systemProgramApprovalId, // 系统投产变更审批单事项Id
+    item_id: systemProgramApprovalKey, // 系统投产变更审批单事项Id
     audit_result, // 审批结果
   } = body;
 
@@ -21,8 +21,23 @@ try {
     audit_result
   );
 
+  printLogs(`查询事项 ${systemProgramApprovalKey} 对应的数据`);
+
+  const systemProgramApprovalParse = await apis.getData(false, "Item", {
+    key: systemProgramApprovalKey,
+  });
+
+  const systemProgramApproval = systemProgramApprovalParse.toJSON();
+
+  const { objectId: systemProgramApprovalId } = systemProgramApproval;
+
+  printLogs(
+    `事项 ${systemProgramApprovalKey} 数据查询完毕，数据为`,
+    systemProgramApproval
+  );
+
   // 根据审批结果确定流转到的状态名称
-  const targetStatusName = audit_result ? "审批通过" : "审批不通过";
+  const targetStatusName = audit_result ? "审批通过" : "审批未通过";
 
   printLogs(
     `根据审批结果 ${audit_result} 确定流转目标状态为`,
@@ -45,8 +60,8 @@ try {
   );
 
   await apis.requestCoreApi("POST", "/parse/functions/transitionItem", {
+    id: systemProgramApproval,
     destinationStatus: targetStatus?.objectId,
-    id: item_id,
   });
 
   printLogs(
