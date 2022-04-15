@@ -126,8 +126,8 @@ try {
           // 设置层级关系，在上线计划申请单的下一层
           ancestors: [...releaseApprovalItem?.ancestors, releaseApprovalId],
           ancestorsCount: 3,
-          // 事项名称，由系统名称-上线计划申请单名称组成
-          name: `${relateSystem?.name}-${releaseApprovalItem?.name}`,
+          // 事项名称，由 [事项类型-系统名称]业务需求名称 组成
+          name: `[系统上线计划申请单-${relateSystem?.name}]${business_requirement_name}`,
           values: systemReleaseApprovalValues,
           createdBy: myApp.toJSON().createdBy,
         });

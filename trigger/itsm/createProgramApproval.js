@@ -164,7 +164,7 @@ try {
             ancestors: ancestorsUnderBusinessRequirement,
             ancestorsCount: ancestorsUnderBusinessRequirement?.length,
             // 事项名称，由系统名称-上线计划申请单名称组成
-            name: `投产变更审批单-${businessRequirementName}`,
+            name: `[投产变更审批单]${businessRequirementName}`,
             values: releaseProgramValues,
             createdBy: myApp.toJSON().createdBy,
           });

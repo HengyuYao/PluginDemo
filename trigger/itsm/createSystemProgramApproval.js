@@ -36,8 +36,10 @@ try {
   printLogs("投产变更审批单所属业务需求事项数据获取完毕");
 
   // 获取业务需求关联的系统事项
-  const { values: { involved_application_system = [] } = {} } =
-    businessRequirement;
+  const {
+    values: { involved_application_system = [] } = {},
+    name: businessRequirementName,
+  } = businessRequirement;
 
   printLogs(
     "当前业务需求事项配置的涉及系统字段数据为",
@@ -181,8 +183,8 @@ try {
           // 设置层级关系，在投产变更审批单的下一层
           ancestors: [...programApprovalItem?.ancestors, programApprovalId],
           ancestorsCount: 3,
-          // 事项名称，由系统名称-投产变更审批单名称组成
-          name: `${relateSystem?.name}-${programApprovalItem?.name}`,
+          // 事项名称，由 [事项类型-系统名称]业务需求名称 组成
+          name: `[系统投产变更审批单-${relateSystem?.name}]${businessRequirementName}`,
           values: systemProgramApprovalValues,
           createdBy: myApp.toJSON().createdBy,
         });
