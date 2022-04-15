@@ -1,24 +1,33 @@
 modules:
   webtrigger:
-    - key: createSystemReleaseApproval # 创建系统上线计划申请单
+    # 创建系统上线计划申请单
+    - key: createSystemReleaseApproval
       function: create-SystemReleaseApproval
-    - key: createProgramApproval # 创建投产变更审批单
+    # 创建投产变更审批单
+    - key: createProgramApproval
       function: create-ProgramApproval
-    - key: createSystemProgramApproval # 创建系统投产变更审批单
+    # 创建系统投产变更审批单
+    - key: createSystemProgramApproval
       function: create-SystemProgramApproval
-    - key: syncSystemProgramApproval # 同步系统投产变更审批单审批结果
+    # 同步系统投产变更审批单审批结果
+    - key: syncSystemProgramApproval
       function: sync-SystemProgramApproval
     # 发送待办消息列表
     - key: syncBacklogs
       function: sync-backlogs
   function:
-    - key: create-SystemReleaseApproval # 创建系统上线计划申请单
+    # 创建系统上线计划申请单
+    - key: create-SystemReleaseApproval
       handler: /trigger/itsm/createSystemReleaseApproval.js
-    - key: create-ProgramApproval # 创建投产变更审批单
+    # 创建投产变更审批单
+    - key: create-ProgramApproval
       handler: /trigger/itsm/createProgramApproval.js
-    - key: create-SystemProgramApproval # 创建系统投产变更审批单
+    # 创建系统投产变更审批单
+    - key: create-SystemProgramApproval
       handler: /trigger/itsm/createSystemProgramApproval.js
-    - key: sync-SystemProgramApproval # 同步系统投产变更审批单审批结果
+    # 同步系统投产变更审批单审批结果
+    - key: sync-SystemProgramApproval
       handler: /trigger/itsm/syncSystemProgramApproval.js
+    # 发送待办消息列表
     - key: sync-backlogs
-      handler: /trigger/syncBacklogs.js
+      handler: /trigger/oa/syncBacklogs.js
