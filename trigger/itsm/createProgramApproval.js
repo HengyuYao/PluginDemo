@@ -57,12 +57,12 @@ try {
     associated_business_requirement
   );
 
-  printLogs("开始生成创建投产变更审批单及系统投产变更审批单事项请求");
+  printLogs("开始生成创建投产变更审批单事项请求");
 
-  // 查询上线计划申请单事项类型
-  const releaseApprovalType = await apis.getData(false, "ItemType", {
-    name: "上线计划申请单",
-  });
+  // // 查询上线计划申请单事项类型
+  // const releaseApprovalType = await apis.getData(false, "ItemType", {
+  //   name: "上线计划申请单",
+  // });
 
   // 查询投产变更审批单事项类型
   const releaseProgramType = await apis.getData(false, "ItemType", {
@@ -75,7 +75,7 @@ try {
   // 生成创建投产变更审批单事项数组
   const createProgramApprovalRequests = associated_business_requirement?.map(
     (requirementId) => {
-      return new Promise(async () => {
+      return new Promise(async (resolve, reject) => {
         printLogs(
           `查询 ${releaseProgramApplyId} 投产变更审批单关联的 ${requirementId} 业务需求数据`
         );
@@ -89,8 +89,10 @@ try {
         printLogs(`${requirementId} 业务需求数据查询完毕`, businessRequirement);
 
         const {
-          objectId: businessRequirementId,
-          ancestors: businessRequirementAncestors,
+          // objectId: businessRequirementId,
+          // ancestors: businessRequirementAncestors,
+          tenant,
+          workspace,
           name: businessRequirementName,
           values: {
             user_introducer, // 需求提出人
@@ -98,39 +100,39 @@ try {
           } = {},
         } = businessRequirement;
 
-        printLogs(`查询 ${requirementId} 业务需求下的上线计划申请单事项数据`);
+        // printLogs(`查询 ${requirementId} 业务需求下的上线计划申请单事项数据`);
+        //
+        // // 业务需求事项下级事项的ancestor数据
+        // const ancestorsUnderBusinessRequirement = [
+        //   ...businessRequirementAncestors,
+        //   businessRequirementId,
+        // ];
 
-        // 业务需求事项下级事项的ancestor数据
-        const ancestorsUnderBusinessRequirement = [
-          ...businessRequirementAncestors,
-          businessRequirementId,
-        ];
-
-        // 通过 Parse.Query 查询业务需求下的上线计划申请单事项数据
-        const itemParseQuery = await apis.getParseQuery(false, "Item");
-
-        const [releaseApprovalParse] = await itemParseQuery
-          .equalTo("itemType", releaseApprovalType?.id) // 上线计划申请单事项类型
-          .containedIn("ancestors", ancestorsUnderBusinessRequirement) // 上线计划申请单挂载在业务需求下
-          .findAll({ sessionToken });
-
-        const releaseApproval = releaseApprovalParse.toJSON();
-
-        printLogs(
-          `${requirementId} 业务需求下的上线计划申请单事项数据查询完成，数据为`,
-          releaseApproval
-        );
+        // // 通过 Parse.Query 查询业务需求下的上线计划申请单事项数据
+        // const itemParseQuery = await apis.getParseQuery(false, "Item");
+        //
+        // const [releaseApprovalParse] = await itemParseQuery
+        //   .equalTo("itemType", releaseApprovalType?.id) // 上线计划申请单事项类型
+        //   .containedIn("ancestors", ancestorsUnderBusinessRequirement) // 上线计划申请单挂载在业务需求下
+        //   .findAll({ sessionToken });
+        //
+        // const releaseApproval = releaseApprovalParse.toJSON();
+        //
+        // printLogs(
+        //   `${requirementId} 业务需求下的上线计划申请单事项数据查询完成，数据为`,
+        //   releaseApproval
+        // );
 
         // 解析出需要的从上线计划申请单中获取的数据
-        const {
-          tenant,
-          workspace,
-          objectId: releaseApprovalId,
-          values: {
-            emergency_degree, // 紧急程度
-            onlinetime, // 上线日期
-          } = {},
-        } = releaseApproval;
+        // const {
+        //   tenant,
+        //   workspace,
+        //   objectId: releaseApprovalId,
+        //   values: {
+        //     emergency_degree, // 紧急程度
+        //     onlinetime, // 上线日期
+        //   } = {},
+        // } = releaseApproval;
 
         try {
           printLogs(
@@ -140,15 +142,15 @@ try {
           // 投产变更审批单事项value
           const releaseProgramValues = {
             user_introducer, // 业务提出人
-            emergency_degree,
             dropdown_business_department, // 业务部门
             application_date: +new Date(), // 申请日期
             demand_leader: [releaseProgramApplyCreator], // 需求牵头人
-            online_plan_risk_assessment: [releaseApprovalId], // 上线计划申请单
+            // online_plan_risk_assessment: [releaseApprovalId], // 上线计划申请单
             associated_product_change_apply_number: releaseProgramApplyKey, // 投产变更申请单事项key
-            date_implementation_date: onlinetime, // 实施日期，与上线计划申请单的上线日期相同
+            // date_implementation_date: onlinetime, // 实施日期，与上线计划申请单的上线日期相同
             whether_part_online: "否", // 是否部分上线
             radio_online_report: "否", // 是否上线报备
+            emergency_degree: "标准", // 紧急程度，默认标准
           };
 
           // 获得事项类型parse对象
@@ -172,14 +174,14 @@ try {
             ReleaseProgramItem
           );
 
-          printLogs(`开始创建 ${requirementId} 下的投产变更审批单事项`);
+          printLogs(`开始创建的投产变更审批单事项`);
 
           const releaseProgramApproval = await apis.saveItemWithKey(
             ReleaseProgramItem
           );
 
           printLogs(
-            `${requirementId} 投产变更审批单事项创建成功，创建结果为`,
+            `投产变更审批单事项创建成功，创建结果为`,
             releaseProgramApproval
           );
 
