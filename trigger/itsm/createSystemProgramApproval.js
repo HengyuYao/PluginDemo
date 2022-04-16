@@ -217,5 +217,5 @@ try {
 
   printLogs("所有系统投产变更审批单事项数据创建完成");
 } catch (error) {
-  return error;
+  return error?.message;
 }

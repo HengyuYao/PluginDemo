@@ -14,7 +14,7 @@ try {
   const {
     item_id: systemReleaseApprovalKey, // 系统上线计划申请单事项Id
     evaluate_result, // 评估结果，通过/不通过
-    data_compliance, // 数据是否符合需求
+    whether_compliance_regulations, // 数据是否符合需求
     risk_assessment_content, // 风险评估内容
     evaluation_files, // ITSM评估的附件
   } = body;
@@ -79,7 +79,7 @@ try {
     {
       values: {
         risk_assessment_content, // 风险评估内容
-        data_compliance: [data_compliance], // 本次投产变更及数据是否符合相关规定
+        whether_compliance_regulations: [whether_compliance_regulations], // 本次投产变更及数据是否符合相关规定
       },
     }
   );
@@ -96,6 +96,12 @@ try {
   printLogs(
     `成功将 ${systemReleaseApprovalId} 系统上线计划申请单事项流转至目标状态`
   );
+
+  return {
+    success: true,
+    data: null,
+    message: "系统上线计划申请单审批结果同步完成",
+  };
 } catch (error) {
-  return error;
+  return error?.message;
 }

@@ -17,7 +17,7 @@ try {
   } = body;
 
   printLogs(
-    `接收到ITSM同步的 ID 为 ${systemProgramApprovalId} 的系统投产变更审批单事项的审批结果，评估结果为`,
+    `接收到ITSM同步的 ID 为 ${systemProgramApprovalKey} 的系统投产变更审批单事项的审批结果，评估结果为`,
     audit_result
   );
 
@@ -60,13 +60,19 @@ try {
   );
 
   await apis.requestCoreApi("POST", "/parse/functions/transitionItem", {
-    id: systemProgramApproval,
+    id: systemProgramApprovalId,
     destinationStatus: targetStatus?.objectId,
   });
 
   printLogs(
     `成功将 ${systemProgramApprovalId} 系统投产变更审批单事项流转至目标状态`
   );
+
+  return {
+    success: true,
+    data: null,
+    message: "系统投产变更审批单审批结果同步完成",
+  };
 } catch (error) {
-  return error;
+  return error?.message;
 }

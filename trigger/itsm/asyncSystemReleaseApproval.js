@@ -78,7 +78,7 @@ try {
 
   const ASYNC_DATA_TO_ITSM = {
     // 需要处理的数据
-    changeType: changeType?.join(','), // 变更类型
+    changeType: changeType?.join(","), // 变更类型
     system_manager: system_manager // 系统负责人,用户类型，先转成用户名，再连接,
       ?.map((user) => user.username)
       ?.join(","),
@@ -92,9 +92,12 @@ try {
     system_identification, // 系统标识
     business_requirement_name, // 业务需求标题
     business_requirement_number, // 业务需求编号
-  }
+  };
 
-  printLogs("向ITSM传递的系统上线计划申请单数据整合完成，数据为", ASYNC_DATA_TO_ITSM);
+  printLogs(
+    "向ITSM传递的系统上线计划申请单数据整合完成，数据为",
+    ASYNC_DATA_TO_ITSM
+  );
 
   printLogs("向ITSM同步系统投产变更审批单数据");
 
@@ -108,5 +111,5 @@ try {
     data: asyncResult,
   };
 } catch (error) {
-  return error;
+  return error?.message;
 }

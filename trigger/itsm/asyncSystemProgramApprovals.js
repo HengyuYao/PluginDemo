@@ -75,12 +75,22 @@ try {
     name: "系统投产变更审批单",
   });
 
+  // 查询审批中状态数据
+  const inAuditStatusParse = await apis.getData(false, "Status", {
+    name: "审批中",
+  });
+
   const itemParseQuery = await apis.getParseQuery(false, "Item");
 
   const systemProgramApprovalsParse = await itemParseQuery
     .equalTo("itemType", systemProgramApprovalType?.id) // 系统投产变更审批单事项类型
+    .equalTo("status", inAuditStatusParse?.id) // 审批中状态
     .containedIn("ancestors", [...programApprovalAncestors, programApprovalId]) // 上线计划申请单挂载在业务需求下
     .findAll({ sessionToken });
+
+  if (!systemProgramApprovalsParse?.length) {
+    throw new Error("没有待审批的投产变更审批单事项");
+  }
 
   const systemProgramApprovals = systemProgramApprovalsParse?.map(
     (systemProgramApprovalParse) => systemProgramApprovalParse.toJSON()
@@ -116,7 +126,7 @@ try {
         } = usefulValues;
 
         // 解析出系统上线计划申请单的事项ID
-        const systemReleaseApprovalId = online_plan_risk_assessment[0];
+        const systemReleaseApprovalId = online_plan_risk_assessment?.join(",");
 
         printLogs(`查询系统上线计划申请单 ${systemReleaseApprovalId} 的数据`);
 
@@ -173,5 +183,5 @@ try {
     data: asyncResult,
   };
 } catch (error) {
-  return error;
+  return error?.message;
 }

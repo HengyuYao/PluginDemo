@@ -171,5 +171,5 @@ try {
     data: createSystemReleaseApprovalsResult,
   };
 } catch (error) {
-  return error;
+  return error?.message;
 }
