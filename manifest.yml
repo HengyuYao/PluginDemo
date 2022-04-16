@@ -21,6 +21,9 @@ modules:
     # 接收ITSM同步的系统投产变更审批单审批结果
     - key: receiveSystemProgramAuditResult
       function: receive-SystemProgramAuditResult
+    # 向ITSM返回系统事项类型的数据列表
+    - key: asyncSystemsInformation
+      function: async-SystemsInformation
     # 发送待办消息列表
     - key: syncBacklogs
       function: sync-backlogs
@@ -46,6 +49,9 @@ modules:
     # 接收ITSM同步的系统投产变更审批单审批结果
     - key: receive-SystemProgramAuditResult
       handler: /trigger/itsm/receiveSystemProgramAuditResult.js
+    # 向ITSM返回系统事项类型的数据列表
+    - key: async-SystemsInformation
+      handler: /trigger/itsm/asyncSystemsInformation.js
     # 发送待办消息列表
     - key: sync-backlogs
       handler: /trigger/oa/syncBacklogs.js
