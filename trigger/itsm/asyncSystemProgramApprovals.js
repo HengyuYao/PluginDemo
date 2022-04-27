@@ -57,6 +57,9 @@ try {
   const {
     values: {
       product_change_apply_files, // 投产变更申请单附件
+      whether_part_online, // 是否部分上线
+      approval_number: part_online_approval_number, // 审批编号字段，部分上线审批单编号
+      dropdown_involved_application_system, // 涉及应用系统
     } = {},
   } = programApply;
 
@@ -76,20 +79,18 @@ try {
   });
 
   // 查询审批中状态数据
-  const inAuditStatusParse = await apis.getData(false, "Status", {
-    name: "审批中",
-  });
+  const inAuditStatusParse = await apis.getData(false, 'Status', { name: '审批中' });
 
   const itemParseQuery = await apis.getParseQuery(false, "Item");
 
   const systemProgramApprovalsParse = await itemParseQuery
     .equalTo("itemType", systemProgramApprovalType?.id) // 系统投产变更审批单事项类型
-    .equalTo("status", inAuditStatusParse?.id) // 审批中状态
+    .equalTo('status', inAuditStatusParse?.id) // 审批中状态
     .containedIn("ancestors", [...programApprovalAncestors, programApprovalId]) // 上线计划申请单挂载在业务需求下
     .findAll({ sessionToken });
 
   if (!systemProgramApprovalsParse?.length) {
-    throw new Error("没有待审批的投产变更审批单事项");
+    throw new Error('没有待审批的投产变更审批单事项');
   }
 
   const systemProgramApprovals = systemProgramApprovalsParse?.map(
@@ -107,26 +108,19 @@ try {
     (systemProgramApproval) => {
       return new Promise(async (resolve) => {
         const {
-          key: systemProgramApprovalKey,
           values: {
-            Actors, // 当前处理人
-            Demand_contact, // 需求联系人
-            ItemCode, // 事项编号
-            ...usefulValues
+            change_scope, // 变更范围
+            product_change_type, // 投产类型
+            changeType, // 变更类型(重要程度),
+            online_plan_risk_assessment, // 上线计划申请单(风险评估单)编号
+            demand_leader, // 需求牵头人
+            system_manager, // 系统负责人
+            ItemCode: systemProgramApprovalItemCode
           } = {},
         } = systemProgramApproval;
 
-        const {
-          change_scope, // 变更范围
-          product_change_type, // 投产类型
-          changeType, // 变更类型(重要程度),
-          online_plan_risk_assessment, // 上线计划申请单(风险评估单)编号
-          demand_leader, // 需求牵头人
-          system_manager, // 系统负责人
-        } = usefulValues;
-
         // 解析出系统上线计划申请单的事项ID
-        const systemReleaseApprovalId = online_plan_risk_assessment?.join(",");
+        const systemReleaseApprovalId = online_plan_risk_assessment?.join(',');
 
         printLogs(`查询系统上线计划申请单 ${systemReleaseApprovalId} 的数据`);
 
@@ -142,9 +136,11 @@ try {
         );
 
         resolve({
-          item_id: systemProgramApprovalKey,
-          // 导入全部需要的数据，需要处理的数据进行额外覆盖
-          ...usefulValues,
+          item_id: systemProgramApprovalItemCode,
+          // 不要处理的数据
+          whether_part_online, // 是否部分上线
+          part_online_approval_number, // 部分上线申请单编号
+          dropdown_involved_application_system, // 涉及应用系统
           // 需要处理的数据，一般都为数组类型，只取第一个，为了方便，直接使用join连接
           changeType: changeType?.join(","),
           change_scope: change_scope?.join(","),

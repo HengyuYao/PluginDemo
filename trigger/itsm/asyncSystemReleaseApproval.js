@@ -31,12 +31,12 @@ try {
   );
 
   const {
-    key: item_id, // 传递key给ITSM平台
     ancestors: [
       business_intention_id, // 业务意向ID
       business_requirement_id, // 业务需求ID
     ] = [],
     values: {
+      ItemCode: systemReleaseApprovalItemCode, // 事项编号
       emergency_degree, // 紧急程度
       onlinetime, // 上线日期
       application_date, // 申请日期
@@ -82,9 +82,9 @@ try {
     system_manager: system_manager // 系统负责人,用户类型，先转成用户名，再连接,
       ?.map((user) => user.username)
       ?.join(","),
-    business_intention_id: businessIntention?.key, // 业务意向编号
+    business_intention_number: businessIntention?.key, // 业务意向编号
     // 不需要处理直接传递的数据
-    item_id, // 事项编号
+    item_id: systemReleaseApprovalItemCode, // 事项编号
     onlinetime, // 上线日期
     application_date, // 申请日期
     emergency_degree, // 紧急程度

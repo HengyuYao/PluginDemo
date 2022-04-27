@@ -97,6 +97,7 @@ try {
           values: {
             user_introducer, // 需求提出人
             tichubumen: dropdown_business_department, // 业务需求提出部门
+            dropdown_involved_application_system, // 涉及应用系统
           } = {},
         } = businessRequirement;
 
@@ -145,6 +146,7 @@ try {
             dropdown_business_department, // 业务部门
             application_date: +new Date(), // 申请日期
             demand_leader: [releaseProgramApplyCreator], // 需求牵头人
+            dropdown_involved_application_system, // 涉及应用系统
             // online_plan_risk_assessment: [releaseApprovalId], // 上线计划申请单
             associated_product_change_apply_number: releaseProgramApplyKey, // 投产变更申请单事项key
             date_implementation_date: +new Date(), // 实施日期，TODO:暂定创建事项当天

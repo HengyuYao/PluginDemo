@@ -12,7 +12,7 @@ function printLogs(message, data) {
 
 try {
   const {
-    item_id: systemReleaseApprovalKey, // 系统上线计划申请单事项Id
+    item_id: systemReleaseApprovalItemCode, // 系统上线计划申请单事项Id
     evaluate_result, // 评估结果，通过/不通过
     whether_compliance_regulations, // 数据是否符合需求
     risk_assessment_content, // 风险评估内容
@@ -20,22 +20,25 @@ try {
   } = body;
 
   printLogs(
-    `接收到ITSM同步的 ID 为 ${systemReleaseApprovalKey} 的系统上线计划申请单事项的审批结果，评估结果为`,
+    `接收到ITSM同步的 ID 为 ${systemReleaseApprovalItemCode} 的系统上线计划申请单事项的审批结果，评估结果为`,
     evaluate_result
   );
 
-  printLogs(`查询事项 ${systemReleaseApprovalKey} 对应的数据`);
+  printLogs(`查询事项 ${systemReleaseApprovalItemCode} 对应的数据`);
 
-  const systemReleaseApprovalParse = await apis.getData(false, "Item", {
-    key: systemReleaseApprovalKey,
-  });
+  const systemReleaseApprovalQuery = await apis.getParseQuery(false, "Item");
+
+  const [systemReleaseApprovalParse] = await systemReleaseApprovalQuery.matches(
+    "values.ItemCode",
+    systemReleaseApprovalItemCode
+  );
 
   const systemReleaseApproval = systemReleaseApprovalParse.toJSON();
 
   const { objectId: systemReleaseApprovalId } = systemReleaseApproval;
 
   printLogs(
-    `事项 ${systemReleaseApprovalKey} 数据查询完毕，数据为`,
+    `事项 ${systemReleaseApprovalItemCode} 数据查询完毕，数据为`,
     systemReleaseApproval
   );
 

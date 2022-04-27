@@ -12,27 +12,30 @@ function printLogs(message, data) {
 
 try {
   const {
-    item_id: systemProgramApprovalKey, // 系统投产变更审批单事项Id
+    item_id: systemProgramApprovalItemCode, // 系统投产变更审批单事项Id
     audit_result, // 审批结果
   } = body;
 
   printLogs(
-    `接收到ITSM同步的 ID 为 ${systemProgramApprovalKey} 的系统投产变更审批单事项的审批结果，评估结果为`,
+    `接收到ITSM同步的 ID 为 ${systemProgramApprovalItemCode} 的系统投产变更审批单事项的审批结果，评估结果为`,
     audit_result
   );
 
-  printLogs(`查询事项 ${systemProgramApprovalKey} 对应的数据`);
+  printLogs(`查询事项 ${systemProgramApprovalItemCode} 对应的数据`);
 
-  const systemProgramApprovalParse = await apis.getData(false, "Item", {
-    key: systemProgramApprovalKey,
-  });
+  const systemProgramApprovalQuery = await apis.getParseQuery(false, "Item");
+
+  const [systemProgramApprovalParse] = await systemProgramApprovalQuery.matches(
+    "values.ItemCode",
+    systemProgramApprovalItemCode
+  );
 
   const systemProgramApproval = systemProgramApprovalParse.toJSON();
 
   const { objectId: systemProgramApprovalId } = systemProgramApproval;
 
   printLogs(
-    `事项 ${systemProgramApprovalKey} 数据查询完毕，数据为`,
+    `事项 ${systemProgramApprovalItemCode} 数据查询完毕，数据为`,
     systemProgramApproval
   );
 
