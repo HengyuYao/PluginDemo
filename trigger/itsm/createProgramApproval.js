@@ -11,17 +11,17 @@ function printLogs(message, data) {
 }
 
 try {
-  const { objectId: releaseProgramApplyId } = body;
+  const { key: releaseProgramApplyKey } = body;
 
-  printLogs(`获取Id为 ${releaseProgramApplyId} 的投产变更申请单事项数据`);
+  printLogs(`获取key为 ${releaseProgramApplyKey} 的投产变更申请单事项数据`);
   // 获取上线计划申请单事项
   const releaseApprovalParse = await apis.getData(false, "Item", {
-    objectId: releaseProgramApplyId,
+    key: releaseProgramApplyKey,
   });
 
   const releaseProgramApplyItem = releaseApprovalParse.toJSON();
 
-  printLogs("投产变更申请单事项数据获取完毕");
+  printLogs("投产变更申请单事项数据获取完毕，数据为", releaseProgramApplyItem);
 
   // 获取投产变更申请单事项的关联业务需求事项字段值
   const {
@@ -29,15 +29,16 @@ try {
       associated_business_requirement = [], // 关联的业务需求数据
     } = {},
     createdBy: releaseProgramApplyCreatedBy, // 创建人
-    key: releaseProgramApplyKey, // 投产变更申请单事项key
   } = releaseProgramApplyItem;
 
   printLogs("获取投产变更申请单创建人信息");
 
+  // 获取投产变更创建人信息
   const releaseProgramApplyCreatorParse = await apis.getData(false, "_User", {
     objectId: releaseProgramApplyCreatedBy?.objectId,
   });
 
+  // 处理用户信息以符合用户类型字段数据格式
   const { deleted, enabled, nickname, username, objectId } =
     releaseProgramApplyCreatorParse.toJSON();
 
@@ -53,7 +54,7 @@ try {
   printLogs("投产变更申请单创建人信息为", releaseProgramApplyCreator);
 
   printLogs(
-    `投产变更申请单 ${releaseProgramApplyId} 中涉及的业务需求列表为`,
+    `投产变更申请单 ${releaseProgramApplyKey} 中涉及的业务需求列表为`,
     associated_business_requirement
   );
 
@@ -77,7 +78,7 @@ try {
     (requirementId) => {
       return new Promise(async (resolve, reject) => {
         printLogs(
-          `查询 ${releaseProgramApplyId} 投产变更审批单关联的 ${requirementId} 业务需求数据`
+          `查询 ${releaseProgramApplyKey} 投产变更审批单关联的 ${requirementId} 业务需求数据`
         );
 
         const businessRequirementParse = await apis.getData(false, "Item", {
@@ -95,9 +96,9 @@ try {
           workspace,
           name: businessRequirementName,
           values: {
-            user_introducer, // 需求提出人
-            tichubumen: dropdown_business_department, // 业务需求提出部门
-            dropdown_involved_application_system, // 涉及应用系统
+            user_introducer_task: xuqiutichuren, // 需求提出人
+            tichubumen: Demand_Department, // 需求提出部门
+            involved_application_system, // 涉及系统
           } = {},
         } = businessRequirement;
 
@@ -142,17 +143,16 @@ try {
 
           // 投产变更审批单事项value
           const releaseProgramValues = {
-            user_introducer, // 业务提出人
-            dropdown_business_department, // 业务部门
+            xuqiutichuren, // 需求提出人
+            Demand_Department, // 需求提出部门
             application_date: +new Date(), // 申请日期
             demand_leader: [releaseProgramApplyCreator], // 需求牵头人
-            dropdown_involved_application_system, // 涉及应用系统
+            involved_application_system, // 涉及系统
             // online_plan_risk_assessment: [releaseApprovalId], // 上线计划申请单
             associated_product_change_apply_number: releaseProgramApplyKey, // 投产变更申请单事项key
             date_implementation_date: +new Date(), // 实施日期，TODO:暂定创建事项当天
             whether_part_online: "否", // 是否部分上线
-            radio_online_report: "否", // 是否上线报备
-            emergency_degree: "标准", // 紧急程度，默认标准
+            Degree_of_urgency: ["普通"], // 紧急程度，默认普通
           };
 
           // 获得事项类型parse对象

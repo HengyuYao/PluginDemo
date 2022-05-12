@@ -11,19 +11,19 @@ function printLogs(message, data) {
 }
 
 try {
-  const { objectId: programApprovalId } = body;
+  const { key: programApprovalKey } = body;
 
-  printLogs(`获取Id为 ${programApprovalId} 的投产变更审批单事项数据`);
+  printLogs(`获取key为 ${programApprovalKey} 的投产变更审批单事项数据`);
   // 获取投产变更审批单事项
   const programApprovalParse = await apis.getData(false, "Item", {
-    objectId: programApprovalId,
+    key: programApprovalKey,
   });
 
   const programApprovalItem = programApprovalParse.toJSON();
 
-  printLogs("投产变更审批单事项数据获取完毕");
+  printLogs("投产变更审批单事项数据获取完毕，数据为", programApprovalItem);
 
-  printLogs(`获取 ${programApprovalId} 投产变更审批单事项所属业务需求数据`);
+  printLogs(`获取 ${programApprovalKey} 投产变更审批单事项所属业务需求数据`);
   // 获取投产变更审批单事项的父业务需求事项
   const [, businessRequirementId] = programApprovalItem?.ancestors;
 
@@ -33,18 +33,12 @@ try {
 
   const businessRequirement = businessRequirementParse.toJSON();
 
-  printLogs("投产变更审批单所属业务需求事项数据获取完毕");
+  printLogs("投产变更审批单所属业务需求事项数据获取完毕，数据为", businessRequirement);
 
   // 获取业务需求关联的系统事项
   const {
-    values: { involved_application_system = [] } = {},
     name: businessRequirementName,
   } = businessRequirement;
-
-  printLogs(
-    "当前业务需求事项配置的涉及系统字段数据为",
-    involved_application_system
-  );
 
   // 系统投产变更审批单需要继承自投产变更审批单的数据
   const {
@@ -53,36 +47,44 @@ try {
       associated_product_change_apply_number, // 投产变更申请单编号
       application_date, // 申请日期
       date_implementation_date, // 实施日期
+      involved_application_system, // 涉及系统
     },
     ancestors: programApprovalAncestors,
+    tenant: programApprovalTenant,
+    objectId: programApprovalId
   } = programApprovalItem;
+  
+  printLogs(
+    "当前投产变更审批单事项的涉及系统字段数据为",
+    involved_application_system
+  );
 
-  printLogs("查询投产变更审批单对应的上线计划申请单事项数据");
+  // printLogs("查询投产变更审批单对应的上线计划申请单事项数据");
 
-  const releaseApprovalType = await apis.getData(false, "ItemType", {
-    name: "上线计划申请单",
-  });
+  // const releaseApprovalType = await apis.getData(false, "ItemType", {
+  //   name: "上线计划申请单",
+  // });
 
-  const releaseApprovalQuery = await apis.getParseQuery(false, "Item");
+  // const releaseApprovalQuery = await apis.getParseQuery(false, "Item");
 
-  const [releaseApprovalParse] = await releaseApprovalQuery
-    .equalTo("itemType", releaseApprovalType?.id) // 上线计划申请单事项类型
-    .containedIn("ancestors", programApprovalAncestors) // 上线计划申请单挂载在业务需求下
-    .findAll({ sessionToken });
+  // const [releaseApprovalParse] = await releaseApprovalQuery
+  //   .equalTo("itemType", releaseApprovalType?.id) // 上线计划申请单事项类型
+  //   .containedIn("ancestors", programApprovalAncestors) // 上线计划申请单挂载在业务需求下
+  //   .findAll({ sessionToken });
 
-  const releaseApproval = releaseApprovalParse.toJSON();
+  // const releaseApproval = releaseApprovalParse.toJSON();
 
   // const {
   //   ancestors: releaseApprovalAncestors, // 上线计划申请单层级
   //   objectId: releaseApprovalId, // 上线计划申请单事项ID
   // } = releaseApproval;
 
-  printLogs(
-    "投产变更审批单对应的上线计划申请单数据查询完毕，数据为",
-    releaseApproval
-  );
+  // printLogs(
+  //   "投产变更审批单对应的上线计划申请单数据查询完毕，数据为",
+  //   releaseApproval
+  // );
 
-  printLogs("查询系统投产变更审批单及系统上线计划申请单事项类型");
+  printLogs("查询系统投产变更审批单事项类型");
 
   // 获取系统投产变更审批单事项类型
   const systemProgramApprovalType = await apis.getData(false, "ItemType", {
@@ -173,7 +175,7 @@ try {
         };
 
         systemProgramApproval.set({
-          tenant: programApprovalItem?.tenant, // 沿用父事项的租户
+          tenant: programApprovalTenant, // 沿用父事项的租户
           workspace: {
             __type: "Pointer",
             className: "Workspace",
@@ -181,7 +183,7 @@ try {
           }, // 创建到对应的空间
           itemType: systemProgramApprovalType, // 事项类型
           // 设置层级关系，在投产变更审批单的下一层
-          ancestors: [...programApprovalItem?.ancestors, programApprovalId],
+          ancestors: [...programApprovalAncestors, programApprovalId],
           ancestorsCount: 3,
           // 事项名称，由 [事项类型-系统名称]业务需求名称 组成
           name: `[系统投产变更审批单-${relateSystem?.name}]${businessRequirementName}`,
