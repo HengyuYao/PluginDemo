@@ -19,15 +19,15 @@ try {
     `接收到 ${releaseApprovalKey} 投产变更申请单的关联需求计算请求，开始处理`
   );
 
-  printLogs(`查询处于【UAT测试通过】的业务需求数据`);
+  printLogs(`查询处于【待投产】的业务需求数据`);
 
   const requirementStatusParse = await apis.getData(false, "Status", {
-    name: "UAT测试通过",
+    name: "待投产",
   });
 
   const requirementStatus = requirementStatusParse.toJSON();
 
-  printLogs(`【UAT测试通过】状态数据查询完成，数据为`, requirementStatus);
+  printLogs(`【待投产】状态数据查询完成，数据为`, requirementStatus);
 
   const businessRequirementTypeParse = await apis.getData(false, "ItemType", {
     name: "业务需求",
@@ -41,15 +41,15 @@ try {
   const itemParseQuery = await apis.getParseQuery(false, "Item");
 
   const requirementsListParse = await itemParseQuery
-    .equalTo("itemType", businessRequirementType?.objectId)
-    .equalTo("status", requirementStatus?.objectId)
+    .equalTo("itemType", businessRequirementType?.objectId) // 业务需求
+    .equalTo("status", requirementStatus?.objectId) // 待投产状态
     .findAll({ sessionToken });
 
   const requirementsList = requirementsListParse?.map((requirement) =>
     requirement.toJSON()
   );
 
-  printLogs("【UAT测试通过】业务需求数据查询完成，列表为", requirementsList);
+  printLogs("【待投产】业务需求数据查询完成，列表为", requirementsList);
 
   printLogs("查询处于【评估通过】状态的上线计划事项列表");
 
@@ -59,10 +59,10 @@ try {
 
   const systemReleaseStatus = systemReleaseStatusParse.toJSON();
 
-  printLogs(`【评估】状态数据查询完成，数据为`, systemReleaseStatus);
+  printLogs(`【评估通过】状态数据查询完成，数据为`, systemReleaseStatus);
 
   const systemReleaseTypeParse = await apis.getData(false, "ItemType", {
-    name: "业务需求",
+    name: "上线计划",
   });
 
   const systemReleaseType = systemReleaseTypeParse.toJSON();
@@ -86,13 +86,32 @@ try {
   const requirementIdsList = requirementsList
     ?.map((requirement) => requirement?.objectId)
     ?.filter((requirementId) => {
-			// 上线计划的 ancestors 包含当前需求 ID 时，表示上线计划是业务需求的子事项
+      // 上线计划的 ancestors 包含当前需求 ID 时，表示上线计划是业务需求的子事项
       return systemReleases?.some((systemRelease) =>
         systemRelease?.ancestors?.includes(requirementId)
       );
     });
 
   printLogs("计算完成，最终符合条件的业务需求数据ID为", requirementIdsList);
+
+  printLogs(`开始更新 ${releaseApprovalKey} 投产变更申请单关联业务需求字段`);
+
+  const releaseApprovalParse = await apis.getData(false, "Item", {
+    key: releaseApprovalKey,
+  });
+
+  const result = await apis.requestCoreApi(
+    "PUT",
+    `/parse/api/items/${releaseApprovalParse.id}`,
+    {
+      "values.associated_business_requirement": requirementIdsList,
+    }
+  );
+
+  printLogs(
+    `${releaseApprovalKey} 投产变更申请单关联业务需求字段更新成功，结果为`,
+    result
+  );
 } catch (error) {
   return {
     success: false,
