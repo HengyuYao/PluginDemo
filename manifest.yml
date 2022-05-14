@@ -1,12 +1,15 @@
 modules:
   webtrigger:
-    # 创建系统上线计划申请单
+    # 创建系统上线计划
     - key: createSystemReleaseApproval
       function: create-SystemReleaseApproval
-    # 向ITSM同步系统上线计划申请单数据
+    # 向ITSM同步系统上线计划数据
     - key: asyncSystemReleaseApproval
       function: async-SystemReleaseApproval
-    # 接收ITSM同步的系统上线申请单审批结果
+    # 向ITSM同步系统上线计划附件信息
+    - key: asyncSystemReleaseAttachments
+      function: async-SystemReleaseAttachments
+    # 接收ITSM同步的系统上线计划最新状态
     - key: receiveSystemReleaseStatus
       function: receive-SystemReleaseStatus
     # 创建投产变更申请单事项时计算相应的业务需求并写入
@@ -19,13 +22,16 @@ modules:
     - key: syncBacklogs
       function: sync-backlogs
   function:
-    # 创建系统上线计划申请单
+    # 创建系统上线计划
     - key: create-SystemReleaseApproval
       handler: /trigger/itsm/createSystemReleaseApproval.js
-    # 向ITSM同步系统上线计划申请单数据
+    # 向ITSM同步系统上线计划数据
     - key: async-SystemReleaseApproval
       handler: /trigger/itsm/asyncSystemReleaseApproval.js
-    # 接收ITSM同步的系统上线申请单审批结果
+    # 向ITSM同步系统上线计划附件数据
+    - key: async-SystemReleaseAttachments
+      handler: /trigger/itsm/asyncSystemReleaseAttachments.js
+    # 接收ITSM同步的系统上线计划最新状态
     - key: receive-SystemReleaseStatus
       handler: /trigger/itsm/receiveSystemReleaseStatus.js
     # 创建投产变更申请单事项时计算相应的业务需求并写入
