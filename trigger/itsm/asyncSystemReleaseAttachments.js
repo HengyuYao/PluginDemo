@@ -50,8 +50,8 @@ const ATTACHMENT_FILE_CODE_ENUM = {
   [DATABASE_DESIGN_SPECIFICATION]: 6, // 数据库设计说明书
   [INSTALLATION_DEPLOYMENT_MANUAL]: 7, // 安装部署手册
   [PREPARE_MATERIAL]: 8, // 报备材料
-  [OTHER_ATTACHMENT]: 9, // 其他附件
-};
+  [OTHER_ATTACHMENT]: 9 // 其他附件
+}
 
 // 把 proxima 的附件格式转换成约定格式
 function convertFieldToArray(attachments, ATTACHMENT_TYPE) {
@@ -117,7 +117,7 @@ try {
 
   const requirementApproval = requirementApprovalParse.toJSON();
 
-  printLogs("需求审批单事项数据查询完成，数据为", requirementApproval);
+  printLogs('需求审批单事项数据查询完成，数据为', requirementApproval);
 
   printLogs(`查询 ${releaseApprovalKey} 上线计划对应的投产变更审批单数据`);
 
@@ -127,12 +127,10 @@ try {
 
   const changeApprovalType = changeApprovalTypeParse.toJSON();
 
-  const ChangeApprovalQuery = await apis.getParseQuery(false, "Item");
+  const ChangeApprovalQuery = await apis.getParseQuery(false, 'Item');
 
-  const [changeApprovalParse] = await ChangeApprovalQuery.equalTo(
-    "itemType",
-    changeApprovalType?.objectId
-  ) // 投产变更申请单
+  const [changeApprovalParse] = await ChangeApprovalQuery
+    .equalTo("itemType", changeApprovalType?.objectId) // 投产变更申请单
     // .containedIn("values.associated_business_requirement", [
     //   business_requirement_id,
     // ]) // 引用了当前业务需求
@@ -140,7 +138,7 @@ try {
 
   const changeApproval = changeApprovalParse.toJSON();
 
-  printLogs("投产变更申请单数据查询完毕，数据为", changeApproval);
+  printLogs('投产变更申请单数据查询完毕，数据为', changeApproval);
 
   const {
     appendix_approval_form, // 需求审批表 - 开发需求申请表
@@ -152,17 +150,11 @@ try {
 
   // 需求审批表和投产变更申请单的附件数据要附在每一个系统上线计划附件数据中
   const COMMON_ATTACHMENTS = [
-    ...convertFieldToArray(
-      appendix_approval_form,
-      REQUIREMENT_DEVELOP_APPROVAL
-    ),
-    ...convertFieldToArray(product_change_apply_files, BUSINESS_TEST_APPROVAL),
-  ];
+    ...convertFieldToArray(appendix_approval_form, REQUIREMENT_DEVELOP_APPROVAL),
+    ...convertFieldToArray(product_change_apply_files, BUSINESS_TEST_APPROVAL)
+  ]
 
-  printLogs(
-    "需求审批表、投产变更申请单中附件数据整合完成，数据为",
-    COMMON_ATTACHMENTS
-  );
+  printLogs('需求审批表、投产变更申请单中附件数据整合完成，数据为', COMMON_ATTACHMENTS);
 
   return {
     success: true,

@@ -15,6 +15,9 @@ modules:
     # 创建投产变更申请单事项时计算相应的业务需求并写入
     - key: setRelationRequirements
       function: set-RelationRequirements
+    # 投产变更申请单通过时将附件写入系统上线计划
+    - key: setSystemReleaseAttachments
+      function: set-SystemReleaseAttachments
     # 向ITSM返回系统事项类型的数据列表
     - key: getSystemList
       function: get-SystemList
@@ -37,6 +40,9 @@ modules:
     # 创建投产变更申请单事项时计算相应的业务需求并写入
     - key: set-RelationRequirements
       handler: /trigger/itsm/setRelationRequirements.js
+    # 投产变更申请单通过时将附件写入系统上线计划
+    - key: set-SystemReleaseAttachments
+      handler: /trigger/itsm/setSystemReleaseAttachments.js
     # 向ITSM返回系统事项类型的数据列表
     - key: get-SystemList
       handler: /trigger/itsm/getSystemList.js
