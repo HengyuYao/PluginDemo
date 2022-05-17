@@ -19,7 +19,7 @@ const REQUIREMENT_DEVELOP_APPROVAL = "REQUIREMENT_DEVELOP_APPROVAL";
 // 系统上线计划 - 报备材料
 const PREPARE_MATERIAL = "PREPARE_MATERIAL";
 
-// 系统上线计划 - 实施方案
+// 系统上线计划 - 投产及变更实施方案
 const EXECUTE_SOLUTION = "EXECUTE_SOLUTION";
 
 // 系统上线计划 - 技术测试报告审批表
@@ -41,7 +41,7 @@ const INSTALLATION_DEPLOYMENT_MANUAL = "INSTALLATION_DEPLOYMENT_MANUAL";
 const OTHER_ATTACHMENT = "OTHER_ATTACHMENT";
 
 const ATTACHMENT_FILE_CODE_ENUM = {
-  [EXECUTE_SOLUTION]: 0, // 实施方案
+  [EXECUTE_SOLUTION]: 0, // 投产及变更实施方案
   [BUSINESS_TEST_APPROVAL]: 1, // 业务测试报告审批表
   [TECHNOLOGY_TEST_FORM]: 2, // 技术测试报告审批表
   [REQUIREMENT_DEVELOP_APPROVAL]: 3, // 开发需求申请表
@@ -50,8 +50,8 @@ const ATTACHMENT_FILE_CODE_ENUM = {
   [DATABASE_DESIGN_SPECIFICATION]: 6, // 数据库设计说明书
   [INSTALLATION_DEPLOYMENT_MANUAL]: 7, // 安装部署手册
   [PREPARE_MATERIAL]: 8, // 报备材料
-  [OTHER_ATTACHMENT]: 9 // 其他附件
-}
+  [OTHER_ATTACHMENT]: 9, // 其他附件
+};
 
 // 把 proxima 的附件格式转换成约定格式
 function convertFieldToArray(attachments, ATTACHMENT_TYPE) {
@@ -85,76 +85,121 @@ try {
     releaseApproval
   );
 
-  const {
-    ancestors: [
-      business_mention_id, // 拿到业务意向编号
-      business_requirement_id, // 业务需求编号
-    ] = [],
-  } = releaseApproval;
+  const { objectId: releaseApprovalId } = releaseApproval;
 
-  printLogs(`查询 ${releaseApprovalKey} 上线计划对应的需求审批单数据`);
+  printLogs(`查询 ${releaseApprovalKey} 上线计划下的系统上线计划数据`);
 
-  const requirementApprovalTypeParse = await apis.getData(false, "ItemType", {
-    name: "需求审批单",
+  const systemReleaseTypeParse = await apis.getData(false, "ItemType", {
+    name: "系统上线计划",
   });
 
-  const requirementApprovalType = requirementApprovalTypeParse.toJSON();
+  const systemReleaseType = systemReleaseTypeParse.toJSON();
 
-  printLogs("需求审批单事项类型数据查询完成，数据为", requirementApprovalType);
+  printLogs("系统上线计划事项类型数据查询完成，数据为", systemReleaseType);
 
   // 拿到事项查询方法
-  const RequirementApprovalQuery = await apis.getParseQuery(false, "Item");
+  const SystemReleaseQuery = await apis.getParseQuery(false, "Item");
 
-  const [requirementApprovalParse] = await RequirementApprovalQuery.equalTo(
+  const systemReleasesParse = await SystemReleaseQuery.equalTo(
     "itemType",
-    requirementApprovalType?.objectId
-  )
-    .containedIn("ancestors", [business_mention_id]) // 在上线计划的业务意向下
-    .containedIn("values.associated_business_requirement", [
-      business_requirement_id,
-    ])
-    .find({ sessionToken }); // 关联了上线计划所属业务需求
+    systemReleaseType?.objectId
+  ) // 系统上线计划事项类型
+    .containedIn("ancestors", [releaseApprovalId]) // 在上线计划的下
+    .findAll({ sessionToken });
 
-  const requirementApproval = requirementApprovalParse.toJSON();
+  const systemReleases = systemReleasesParse?.map((systemRelease) =>
+    systemRelease.toJSON()
+  );
 
-  printLogs('需求审批单事项数据查询完成，数据为', requirementApproval);
+  printLogs(
+    `${releaseApprovalKey} 上线计划下系统上线计划数据查询完毕，列表为`,
+    systemReleases
+  );
 
-  printLogs(`查询 ${releaseApprovalKey} 上线计划对应的投产变更审批单数据`);
+  printLogs("依次生成系统上线计划传递附件数据");
 
-  const changeApprovalTypeParse = await apis.getData(false, "ItemType", {
-    name: "投产变更申请单",
+  const ASYNC_DATA = systemReleases?.map((systemRelease) => {
+    const {
+      ItemCode, // 事项编号
+      dropdown_production_type: [CHANGE_TYPE], // 投产类型
+      // 投产及变更实施方案原字段值
+      execute_solution, // 实施方案_投产
+      ssfa_bg, // 实施方案_变更
+      // 业务测试报告审批表
+      ywcsbgspb_tc, // 业务测试报告审批表_投产
+      ywcsbgspb_bg, // 业务测试报告审批表_变更
+      // 开发需求申请表
+      development_requirement_apply, // 开发需求申请表_投产
+      kfxqsqb_bg, // 开发需求申请表_变更
+      // 其他附件
+      qtfj_bg, // 其它附件_变更
+      other_atachment, // 其它附件_投产
+      // 报备材料
+      prepare_material,
+      // 安装部署手册
+      installation_deployment_manual,
+      // 数据库设计说明书
+      database_design_specification,
+      // 性能测试报告
+      performance_test_report,
+      // 运行管理手册
+      operation_management_manual,
+      // 技术测试报告审批表
+      technology_test_form,
+    } = systemRelease?.values;
+
+    return {
+      item_id: ItemCode,
+      relation_files: [
+        // 投产及变更实施方案转换值
+        ...convertFieldToArray(
+          CHANGE_TYPE === "投产" ? execute_solution : ssfa_bg,
+          EXECUTE_SOLUTION
+        ),
+        // 业务测试报告审批表
+        ...convertFieldToArray(
+          CHANGE_TYPE === "投产" ? ywcsbgspb_tc : ywcsbgspb_bg,
+          BUSINESS_TEST_APPROVAL
+        ),
+        // 开发需求申请表
+        ...convertFieldToArray(
+          CHANGE_TYPE === "投产" ? development_requirement_apply : kfxqsqb_bg,
+          REQUIREMENT_DEVELOP_APPROVAL
+        ),
+        // 其他附件
+        ...convertFieldToArray(
+          CHANGE_TYPE === "投产" ? other_atachment : qtfj_bg,
+          OTHER_ATTACHMENT
+        ),
+        // 报备材料
+        ...convertFieldToArray(prepare_material, PREPARE_MATERIAL),
+        // 安装部署手册
+        ...convertFieldToArray(
+          installation_deployment_manual,
+          INSTALLATION_DEPLOYMENT_MANUAL
+        ),
+        // 数据库设计说明书
+        ...convertFieldToArray(
+          database_design_specification,
+          DATABASE_DESIGN_SPECIFICATION
+        ),
+        // 性能测试报告
+        ...convertFieldToArray(
+          performance_test_report,
+          PERFORMANCE_TEST_REPORT
+        ),
+        // 运行管理手册
+        ...convertFieldToArray(
+          operation_management_manual,
+          OPERATION_MANAGEMENT_MANUAL
+        ),
+        // 技术测试报告审批表
+        ...convertFieldToArray(technology_test_form, TECHNOLOGY_TEST_FORM),
+      ],
+    };
   });
 
-  const changeApprovalType = changeApprovalTypeParse.toJSON();
-
-  const ChangeApprovalQuery = await apis.getParseQuery(false, 'Item');
-
-  const [changeApprovalParse] = await ChangeApprovalQuery
-    .equalTo("itemType", changeApprovalType?.objectId) // 投产变更申请单
-    // .containedIn("values.associated_business_requirement", [
-    //   business_requirement_id,
-    // ]) // 引用了当前业务需求
-    .find({ sessionToken });
-
-  const changeApproval = changeApprovalParse.toJSON();
-
-  printLogs('投产变更申请单数据查询完毕，数据为', changeApproval);
-
-  const {
-    appendix_approval_form, // 需求审批表 - 开发需求申请表
-  } = requirementApproval?.values;
-
-  const {
-    product_change_apply_files, // 投产变更申请单 - 业务测试报告审批表
-  } = changeApproval?.values;
-
-  // 需求审批表和投产变更申请单的附件数据要附在每一个系统上线计划附件数据中
-  const COMMON_ATTACHMENTS = [
-    ...convertFieldToArray(appendix_approval_form, REQUIREMENT_DEVELOP_APPROVAL),
-    ...convertFieldToArray(product_change_apply_files, BUSINESS_TEST_APPROVAL)
-  ]
-
-  printLogs('需求审批表、投产变更申请单中附件数据整合完成，数据为', COMMON_ATTACHMENTS);
+  printLogs(`向ITSM传递系统上线计划及附件信息整合完毕，数据为`, ASYNC_DATA);
 
   return {
     success: true,
