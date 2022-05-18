@@ -32,10 +32,10 @@ try {
   const { key: releaseApprovalKey } = body;
 
   printLogs(
-    `系统上线计划 ${releaseApprovalKey} 提交评估，开始向ITSM系统同步数据`
+    `系统上线计划申请单 ${releaseApprovalKey} 提交评估，开始向ITSM系统同步数据`
   );
 
-  printLogs(`获取 ${releaseApprovalKey} 系统上线计划数据`);
+  printLogs(`获取 ${releaseApprovalKey} 系统上线计划申请单数据`);
 
   const releaseApprovalParse = await apis.getData(false, "Item", {
     key: releaseApprovalKey,
@@ -44,7 +44,7 @@ try {
   const releaseApproval = releaseApprovalParse.toJSON();
 
   printLogs(
-    `${releaseApprovalKey} 系统上线计划事项数据查询完成，数据为`,
+    `${releaseApprovalKey} 系统上线计划申请单事项数据查询完成，数据为`,
     releaseApproval
   );
 
@@ -90,7 +90,7 @@ try {
     businessIntention
   );
 
-  printLogs(`获取 ${releaseApprovalKey} 系统上线计划所属业务需求事项数据`);
+  printLogs(`获取 ${releaseApprovalKey} 所属业务需求事项数据`);
 
   const businessRequirementParse = await apis.getData(false, "Item", {
     objectId: business_requirement_id,
@@ -162,13 +162,16 @@ try {
     business_requirement_number, // 业务需求编号
   };
 
-  printLogs("向ITSM传递的系统上线计划数据整合完成，数据为", ASYNC_DATA_TO_ITSM);
+  printLogs(
+    "向ITSM传递的系统上线计划申请单数据整合完成，数据为",
+    ASYNC_DATA_TO_ITSM
+  );
 
-  printLogs("向ITSM同步系统上线计划数据");
+  printLogs("向ITSM同步系统投产变更审批单数据");
 
   const asyncResult = await apis.post("/test", ASYNC_DATA_TO_ITSM);
 
-  printLogs("向ITSM同步信息成功，响应信息为", asyncResult);
+  printLogs("向ITSM同步信息成功，相应结果为", asyncResult);
 
   return {
     success: true,

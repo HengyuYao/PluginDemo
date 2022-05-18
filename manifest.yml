@@ -21,6 +21,9 @@ modules:
     # 向ITSM返回系统事项类型的数据列表
     - key: getSystemList
       function: get-SystemList
+    # 向ITSM返回对应用户的待办列表
+    - key: getUserBacklogs
+      function: get-UserBacklogs
     # 发送待办消息列表
     - key: syncBacklogs
       function: sync-backlogs
@@ -46,6 +49,9 @@ modules:
     # 向ITSM返回系统事项类型的数据列表
     - key: get-SystemList
       handler: /trigger/itsm/getSystemList.js
+    # 向ITSM返回对应用户的待办列表
+    - key: get-UserBacklogs
+      handler: /trigger/itsm/getUserBacklogs.js
     # 发送待办消息列表
     - key: sync-backlogs
       handler: /trigger/oa/syncBacklogs.js
