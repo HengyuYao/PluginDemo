@@ -10,6 +10,18 @@ function printLogs(message, data) {
   }
 }
 
+// 系统上线计划事项类型key
+const SYSTEM_ONLINE_APPROVAL_PLAN_ITEM_TYPE_KEY = 'system_online_plan_apply';
+
+// 需求审批单事项类型key
+const REQUIREMENT_APPROVAL_ITEM_TYPE_KEY = 'XQSP';
+
+// 【评估通过】事项状态id
+const EVALUATE_PASS_STATUS_ID = "fqdDibfUlR";
+
+// 【上传材料】事项状态id
+const UPLOAD_MATERIAL_STATUS_ID = "E58x6y7GrN";
+
 try {
   const { key: changeApprovalKey } = body;
 
@@ -34,7 +46,7 @@ try {
 
   // 查询系统上线计划事项类型
   const requirementApprovalTypeParse = await apis.getData(false, 'ItemType', {
-    name: '需求审批单'
+    key: REQUIREMENT_APPROVAL_ITEM_TYPE_KEY
   });
 
   const requirementApprovalType = requirementApprovalTypeParse.toJSON();
@@ -70,24 +82,17 @@ try {
 
   // 查询系统上线计划事项类型
   const systemReleaseTypeParse = await apis.getData(false, 'ItemType', {
-    name: '系统上线计划'
+    key: SYSTEM_ONLINE_APPROVAL_PLAN_ITEM_TYPE_KEY
   });
 
   const systemReleaseType = systemReleaseTypeParse.toJSON();
-
-  // 查询评估通过状态
-  const evaluatePassStatusParse = await apis.getData(false, 'Status', {
-    name: '评估通过'
-  });
-
-  const evaluatePassStatus = evaluatePassStatusParse.toJSON();
 
   // 获取 ParseQuery
   const SystemReleaseQuery = await apis.getParseQuery(false, 'Item');
 
   const systemReleaseItemsParse = await SystemReleaseQuery
     .equalTo('itemType', systemReleaseType?.objectId) // 系统上线计划类型
-    .equalTo('status', evaluatePassStatus?.objectId) // 评估通过状态
+    .equalTo('status', EVALUATE_PASS_STATUS_ID) // 评估通过状态
     .containedIn('ancestors', associated_business_requirement) // 系统上线计划在对应业务需求下
     .findAll({ sessionToken });
 
@@ -109,7 +114,7 @@ try {
 
       try {
         // 更新对应字段
-        const updateResult = await apis.requestCoreApi('PUT',  `/parse/api/items/${systemReleaseId}`, {
+        await apis.requestCoreApi('PUT',  `/parse/api/items/${systemReleaseId}`, {
           values: {
             ywcsbgspb_bg: service_test_form, // 业务测试报告 - 读取自投产变更申请单的业务测试报告字段
             ywcsbgspb_tc: service_test_form, // 业务测试报告 - 读取自投产变更申请单的业务测试报告字段
@@ -118,7 +123,12 @@ try {
           }
         })
 
-        resolve(updateResult);
+        await apis.requestCoreApi("POST", "/parse/functions/transitionItem", {
+          id: systemReleaseId,
+          destinationStatus: UPLOAD_MATERIAL_STATUS_ID,
+        });
+
+        resolve();
       } catch (updateError) {
         throw updateError;
       }

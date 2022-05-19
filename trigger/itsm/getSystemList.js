@@ -10,21 +10,26 @@ function printLogs(message, data) {
   }
 }
 
+// 系统类型事项key
+const SYSTEM_ITEM_TYPE_KEY = 'system';
+
 try {
   printLogs('接到 ITSM 平台获取 Devops 平台系统类型事项请求');
 
   printLogs('开始获取系统事项类型数据');
 
-  const systemTypeParse = await apis.getData(false, 'ItemType', { name: '系统' });
+  const systemTypeParse = await apis.getData(false, 'ItemType', { key: SYSTEM_ITEM_TYPE_KEY });
 
-  printLogs('系统事项类型数据获取完成，数据为', systemTypeParse);
+  const systemType = systemTypeParse.toJSON();
+
+  printLogs('系统事项类型数据获取完成，数据为', systemType);
 
   printLogs('查询平台内所有系统类型事项数据');
 
   const systemItemQuery = await apis.getParseQuery(false, 'Item');
 
   const systemItemsParse = await systemItemQuery
-    .equalTo('itemType', systemTypeParse.id) // 系统事项类型
+    .equalTo('itemType', systemType.objectId) // 系统事项类型
     .findAll({ sessionToken });
 
   const systemItems = systemItemsParse?.map((systemItem) => systemItem.toJSON());
@@ -52,16 +57,10 @@ try {
 
   printLogs('系统类型数据整合完成，整合结果为', ASYNC_DATA_TO_ITSM);
 
-  printLogs("向ITSM同步返回系统数据列表");
-
-  const asyncResult = await apis.post("/test", ASYNC_DATA_TO_ITSM);
-
-  printLogs("向ITSM同步系统数据成功，相应结果为", asyncResult);
-
   return {
     success: true,
-    message: "同步成功",
-    data: asyncResult,
+    message: "系统数据查询完成",
+    data: ASYNC_DATA_TO_ITSM,
   };
 } catch (err) {
   return {

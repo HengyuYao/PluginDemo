@@ -10,8 +10,44 @@ function printLogs(message, data) {
   }
 }
 
+// 【关闭】事项状态id与名称
+const CLOSE_STATUS_ID = "OWx6xYazqA";
+
+const CLOSE_STATUS_NAME = "关闭";
+
+// 【评估通过】事项状态id与名称
+const EVALUATE_PASS_STATUS_ID = "fqdDibfUlR";
+
+const EVALUATE_PASS_STATUS_NAME = "评估通过";
+
+// 【评估不通过】事项状态id与名称
+const EVALUATE_FAILED_STATUS_ID = "IlT5sAXjeP";
+
+const EVALUATE_FAILED_STATUS_NAME = "评估未通过";
+
+// 【上线成功】事项状态id与名称
+const RELEASE_SUCCESS_STATUS_ID = "2tsuAN31Nu";
+
+const RELEASE_SUCCESS_STATUS_NAME = "上线成功";
+
+// 【上线取消】事项状态id与名称
+const RELEASE_CANCEL_STATUS_ID = "DcqqCtDihZ";
+
+const RELEASE_CANCEL_STATUS_NAME = "上线取消";
+
+// 【上线回退】事项状态id与名称
+const RELEASE_ROLLBACK_STATUS_ID = "SqD58KvjOY";
+
+const RELEASE_ROLLBACK_STATUS_NAME = "上线回退";
+
+// 【待投产】事项状态id
+const WILL_RELEASE_STATUS_ID = "KFHC1wdKm6";
+
+// 【风险评估中】事项状态id与名称
+const IN_EVALUATE_STATUS_ID = "UueCLCVtcO";
+
 /**
- * 与 ITSM 约定的事项状态 代码与名称 枚举
+ * 与 ITSM 约定的事项状态枚举
  *  0：关闭
  *  1：评估通过
  *  2：评估未通过
@@ -28,13 +64,24 @@ const STATUS_CODE_ENUM = {
   RELEASE_ROLLBACK: 5,
 };
 
-const STATUS_NAME_ENUM = {
-  CLOSE_STATE: "关闭",
-  EVALUATE_PASS: "评估通过",
-  EVALUATE_FAILED: "评估未通过",
-  RELEASE_SUCCESS: "上线成功",
-  RELEASE_CANCEL: "上线取消",
-  RELEASE_ROLLBACK: "上线回退",
+// 与 ITSM 约定的目标状态与 devops 平台内状态 id 枚举
+const STATUS_CODE_TO_ID_ENUM = {
+  [STATUS_CODE_ENUM.CLOSE_STATE]: CLOSE_STATUS_ID,
+  [STATUS_CODE_ENUM.EVALUATE_PASS]: EVALUATE_PASS_STATUS_ID,
+  [STATUS_CODE_ENUM.EVALUATE_FAILED]: EVALUATE_FAILED_STATUS_ID,
+  [STATUS_CODE_ENUM.RELEASE_SUCCESS]: RELEASE_SUCCESS_STATUS_ID,
+  [STATUS_CODE_ENUM.RELEASE_CANCEL]: RELEASE_CANCEL_STATUS_ID,
+  [STATUS_CODE_ENUM.RELEASE_ROLLBACK]: RELEASE_ROLLBACK_STATUS_ID,
+};
+
+// Devops 平台中，事项状态 id 与名称枚举
+const STATUS_ID_TO_NAME_ENUM = {
+  [CLOSE_STATUS_ID]: CLOSE_STATUS_NAME,
+  [EVALUATE_PASS_STATUS_ID]: EVALUATE_PASS_STATUS_NAME,
+  [EVALUATE_FAILED_STATUS_ID]: EVALUATE_FAILED_STATUS_NAME,
+  [RELEASE_SUCCESS_STATUS_ID]: RELEASE_SUCCESS_STATUS_NAME,
+  [RELEASE_CANCEL_STATUS_ID]: RELEASE_CANCEL_STATUS_NAME,
+  [RELEASE_ROLLBACK_STATUS_ID]: RELEASE_ROLLBACK_STATUS_NAME
 };
 
 try {
@@ -43,10 +90,13 @@ try {
     status, // ITSM同步的最新状态
   } = body;
 
-  const targetStatusName = STATUS_NAME_ENUM[status];
+  // 拿出目标状态 id 和 名称
+  const TARGET_STATUS_ID = STATUS_CODE_TO_ID_ENUM[status];
+
+  const TARGET_STATUS_NAME = STATUS_ID_TO_NAME_ENUM[TARGET_STATUS_ID];
 
   // 判断目标状态数据是否正常
-  if (!targetStatusName) {
+  if (!TARGET_STATUS_ID) {
     return {
       success: false,
       code: 999,
@@ -56,27 +106,30 @@ try {
 
   printLogs(
     `接收到ITSM同步的编号为 ${systemReleaseApprovalItemCode} 的系统上线计划状态，目标状态为`,
-    targetStatusName
+    TARGET_STATUS_NAME
   );
 
-  printLogs(`查询 ${targetStatusName} 状态相关数据`);
+  printLogs(`查询 ${TARGET_STATUS_NAME} 状态相关数据`);
 
   // 获取目标状态的相关数据
   const targetStatusParse = await apis.getData(false, "Status", {
-    name: targetStatusName,
+    objectId: TARGET_STATUS_ID,
   });
 
   const targetStatus = targetStatusParse.toJSON();
 
-  printLogs(`目标状态 ${targetStatusName} 数据查询成功，为`, targetStatus);
+  printLogs(`目标状态 ${TARGET_STATUS_NAME} 数据查询成功，为`, targetStatus);
 
   printLogs(`查询事项 ${systemReleaseApprovalItemCode} 对应的数据`);
 
-  const systemReleaseApprovalQuery = await apis.getParseQuery(false, "Item");
+  const SystemReleaseQuery = await apis.getParseQuery(false, 'Item');
 
-  const [systemReleaseApprovalParse] = await systemReleaseApprovalQuery
-    .matches("values.ItemCode", systemReleaseApprovalItemCode)
-    .includes(["itemType"]);
+  const systemReleaseApprovalParse = await SystemReleaseQuery
+    .equalTo("values.ItemCode", systemReleaseApprovalItemCode)
+    .include(['status'])
+    .first({ sessionToken });
+
+  console.log(systemReleaseApprovalParse)
 
   const systemReleaseApproval = systemReleaseApprovalParse.toJSON();
 
@@ -87,11 +140,14 @@ try {
 
   const {
     objectId: systemReleaseApprovalId,
-    status: { name: currentStatusName },
+    status: {
+      objectId: CURRENT_STATUS_ID,
+      name: CURRENT_STATUS_NAME
+    },
   } = systemReleaseApproval;
 
   printLogs(
-    `对事项 ${systemReleaseApprovalItemCode} 状态流转进行校验，当前状态为 ${currentStatusName}，目标状态为 ${targetStatusName}`
+    `对事项 ${systemReleaseApprovalItemCode} 状态流转进行校验，当前状态为 ${CURRENT_STATUS_NAME}，目标状态为 ${TARGET_STATUS_NAME}`
   );
 
   /**
@@ -100,33 +156,34 @@ try {
    *   2. 上线相关只能在评估通过状态流转
    */
   if (status === STATUS_CODE_ENUM.CLOSE_STATE) {
-    const validStatusName = ["风险评估中", "评估通过"];
+    const validStatusId = [IN_EVALUATE_STATUS_ID, EVALUATE_PASS_STATUS_ID];
 
-    if (!validStatusName.includes(currentStatusName)) {
+    if (!validStatusId.includes(CURRENT_STATUS_ID)) {
       return {
         success: false,
         code: 999,
-        message: `上线计划当前状态为${currentStatusName}，无法流转至${targetStatusName}状态`,
+        message: `上线计划当前状态为 ${CURRENT_STATUS_NAME}，无法流转至 ${TARGET_STATUS_NAME} 状态`,
       };
     }
-  } else if (
+  } else if ( // 流转至上线后的相关状态
     [
       STATUS_CODE_ENUM.RELEASE_ROLLBACK,
       STATUS_CODE_ENUM.RELEASE_SUCCESS,
       STATUS_CODE_ENUM.RELEASE_CANCEL,
-    ].includes(status) // 等于上线相关状态
+    ].includes(status)
   ) {
-    if (currentStatusName !== "评估通过") {
+    // 待投产状态才可流转到上线完成、上线取消、上线回退状态
+    if (CURRENT_STATUS_ID !== WILL_RELEASE_STATUS_ID) {
       return {
         success: false,
         code: 999,
-        message: `上线计划当前状态为${currentStatusName}，无法流转至${targetStatusName}状态`,
+        message: `上线计划当前状态为 ${CURRENT_STATUS_NAME}，无法流转至 ${TARGET_STATUS_NAME} 状态`,
       };
     }
   }
 
   printLogs(
-    `业务逻辑校验通过，将 ${systemReleaseApprovalItemCode} 事项流转到至 ${targetStatusName} 状态`
+    `业务逻辑校验通过，将 ${systemReleaseApprovalItemCode} 事项流转到至 ${TARGET_STATUS_NAME} 状态`
   );
 
   await apis.requestCoreApi("POST", "/parse/functions/transitionItem", {

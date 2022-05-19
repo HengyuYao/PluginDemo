@@ -10,6 +10,9 @@ function printLogs(message, data) {
   }
 }
 
+// 系统上线计划事项类型key
+const SYSTEM_ONLINE_APPROVAL_PLAN_ITEM_TYPE_KEY = 'system_online_plan_apply';
+
 try {
   const { key: releaseApprovalKey } = body;
 
@@ -60,7 +63,7 @@ try {
   printLogs("查询系统上线计划事项类型");
   // 获取系统上线计划事项类型
   const systemReleaseApprovalType = await apis.getData(false, "ItemType", {
-    name: "系统上线计划",
+    key: SYSTEM_ONLINE_APPROVAL_PLAN_ITEM_TYPE_KEY,
   });
 
   // 获取到插件信息，用于创建事项
@@ -88,10 +91,13 @@ try {
 
         // 解析系统事项中需要的数据
         const {
-          system_identification, // 系统标识
-          system_manager, // 系统负责人
-          bind_system: systemSpaceId, // 绑定空间Id
-        } = relateSystem?.values;
+          name: system_name,
+          values: {
+            system_identification, // 系统标识
+            system_manager, // 系统负责人
+            bind_system: systemSpaceId, // 绑定空间Id
+          }
+        } = relateSystem;
 
         printLogs(`${relateSystemId} 系统事项绑定的空间ID为`, systemSpaceId);
 
@@ -112,6 +118,7 @@ try {
           // 继承自系统事项的值
           system_identification, // 系统标识
           system_manager, // 系统负责人
+          system_name: [system_name], // 系统名称
         };
 
         systemReleaseApproval.set({
@@ -125,8 +132,8 @@ try {
           // 设置层级关系，在上线计划的下一层
           ancestors: [...releaseApprovalItem?.ancestors, releaseApprovalId],
           ancestorsCount: 3,
-          // 事项名称，由 [事项类型-系统名称]业务需求名称 组成
-          name: `[系统上线计划-${relateSystem?.name}]${business_requirement_title}`,
+          // 事项名称，由 [事项类型系统名称]-业务需求名称 组成
+          name: `[XTSX${system_name}]-${business_requirement_title}`,
           values: systemReleaseApprovalValues,
           createdBy: myApp.toJSON().createdBy,
         });

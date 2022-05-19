@@ -10,6 +10,18 @@ function printLogs(message, data) {
   }
 }
 
+// 业务需求事项类型key
+const BUSINESS_REQUIREMENT_ITEM_TYPE_KEY = 'YWXQ';
+
+// 上线计划事项类型key
+const ONLINE_PLAN_ITEM_TYPE_KEY = 'online_plan_apply';
+
+// 【待投产】事项状态id
+const WILL_RELEASE_STATUS_ID = "KFHC1wdKm6";
+
+// 【评估通过】事项状态id
+const EVALUATE_PASS_STATUS_ID = "fqdDibfUlR";
+
 try {
   const {
     key: releaseApprovalKey, // 投产变更申请单事项 key
@@ -21,16 +33,8 @@ try {
 
   printLogs(`查询处于【待投产】的业务需求数据`);
 
-  const requirementStatusParse = await apis.getData(false, "Status", {
-    name: "待投产",
-  });
-
-  const requirementStatus = requirementStatusParse.toJSON();
-
-  printLogs(`【待投产】状态数据查询完成，数据为`, requirementStatus);
-
   const businessRequirementTypeParse = await apis.getData(false, "ItemType", {
-    name: "业务需求",
+    key: BUSINESS_REQUIREMENT_ITEM_TYPE_KEY,
   });
 
   const businessRequirementType = businessRequirementTypeParse.toJSON();
@@ -42,7 +46,7 @@ try {
 
   const requirementsListParse = await itemParseQuery
     .equalTo("itemType", businessRequirementType?.objectId) // 业务需求
-    .equalTo("status", requirementStatus?.objectId) // 待投产状态
+    .equalTo("status", WILL_RELEASE_STATUS_ID) // 待投产状态
     .findAll({ sessionToken });
 
   const requirementsList = requirementsListParse?.map((requirement) =>
@@ -53,16 +57,8 @@ try {
 
   printLogs("查询处于【评估通过】状态的上线计划事项列表");
 
-  const systemReleaseStatusParse = await apis.getData(false, "Status", {
-    name: "评估通过",
-  });
-
-  const systemReleaseStatus = systemReleaseStatusParse.toJSON();
-
-  printLogs(`【评估通过】状态数据查询完成，数据为`, systemReleaseStatus);
-
   const systemReleaseTypeParse = await apis.getData(false, "ItemType", {
-    name: "上线计划",
+    key: ONLINE_PLAN_ITEM_TYPE_KEY,
   });
 
   const systemReleaseType = systemReleaseTypeParse.toJSON();
@@ -71,7 +67,7 @@ try {
 
   const systemReleasesParse = await itemParseQuery
     .equalTo("itemType", systemReleaseType?.objectId)
-    .equalTo("status", systemReleaseStatus?.objectId)
+    .equalTo("status", EVALUATE_PASS_STATUS_ID) // 评估通过状态
     .findAll({ sessionToken });
 
   const systemReleases = systemReleasesParse?.map((systemRelease) =>
