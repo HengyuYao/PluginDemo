@@ -4,11 +4,11 @@ modules:
     - key: createSystemReleaseApproval
       function: create-SystemReleaseApproval
     # 向ITSM同步系统上线计划数据
-    - key: asyncSystemReleaseApproval
-      function: async-SystemReleaseApproval
+    - key: syncSystemReleaseApproval
+      function: sync-SystemReleaseApproval
     # 向ITSM同步系统上线计划附件信息
-    - key: asyncSystemReleaseAttachments
-      function: async-SystemReleaseAttachments
+    - key: syncSystemReleaseAttachments
+      function: sync-SystemReleaseAttachments
     # 接收ITSM同步的系统上线计划最新状态
     - key: receiveSystemReleaseStatus
       function: receive-SystemReleaseStatus
@@ -32,11 +32,11 @@ modules:
     - key: create-SystemReleaseApproval
       handler: /trigger/itsm/createSystemReleaseApproval.js
     # 向ITSM同步系统上线计划数据
-    - key: async-SystemReleaseApproval
-      handler: /trigger/itsm/asyncSystemReleaseApproval.js
+    - key: sync-SystemReleaseApproval
+      handler: /trigger/itsm/syncSystemReleaseApproval.js
     # 向ITSM同步系统上线计划附件数据
-    - key: async-SystemReleaseAttachments
-      handler: /trigger/itsm/asyncSystemReleaseAttachments.js
+    - key: sync-SystemReleaseAttachments
+      handler: /trigger/itsm/syncSystemReleaseAttachments.js
     # 接收ITSM同步的系统上线计划最新状态
     - key: receive-SystemReleaseStatus
       handler: /trigger/itsm/receiveSystemReleaseStatus.js

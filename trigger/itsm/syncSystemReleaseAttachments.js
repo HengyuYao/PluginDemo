@@ -127,7 +127,7 @@ try {
 
   printLogs("依次生成系统上线计划传递附件数据");
 
-  const ASYNC_ATTACHMENTS_REQUESTS = systemReleases?.map((systemRelease) => {
+  const SYNC_ATTACHMENTS_REQUESTS = systemReleases?.map((systemRelease) => {
     const {
       values: {
         ItemCode, // 事项编号
@@ -160,7 +160,7 @@ try {
       key: systemReleaseKey,
     } = systemRelease;
 
-    const ASYNC_ATTACHMENTS = {
+    const SYNC_DATA = {
       item_id: ItemCode,
       relation_files: [
         // 投产及变更实施方案转换值
@@ -212,18 +212,18 @@ try {
 
     printLogs(
       `系统上线计划 ${systemReleaseKey} 附件列表数据整合完毕，数据为`,
-      ASYNC_ATTACHMENTS
+      SYNC_DATA
     );
 
     return apis.post(
       `${ITSM_DOMAIN}/linksystem/openapi/v1/devops/synAttachFileInfo?apikey=${ITSM_API_KEY}`,
-      ASYNC_ATTACHMENTS
+      SYNC_DATA
     );
   });
 
   printLogs('向ITSM批量发送系统上线计划附件列表请求');
 
-  const sync_result = await Promise.all(ASYNC_ATTACHMENTS_REQUESTS);
+  const sync_result = await Promise.all(SYNC_ATTACHMENTS_REQUESTS);
 
   return {
     success: true,
