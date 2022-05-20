@@ -37,8 +37,11 @@ try {
   const {
     objectId: releasePlanId,
     values: {
+      VerifyTime: verify_date, // 验证时间
       feedback: verify_opinion, // 业务验证意见
-      VerifyResult: verify_result, // 验证结果
+      VeriyResult: verify_result, // 验证结果
+      Department, // 所属部门
+      Verifier, // 验证人员
     } = {},
   } = releasePlan;
 
@@ -72,33 +75,44 @@ try {
   );
 
   const COMMON_VERIFY_DATA = {
+    verify_date,
+    verify_result: verify_result === "通过",
     verify_opinion,
-    verify_result,
+    verify_depart: Department?.join(","), // 验证部门
+    verify_user: Verifier?.map((user) => user.username) // 验证人员
+      ?.join(","),
   };
 
   printLogs("依次生成系统上线计划业务验证结果同步请求");
 
   const SYNC_VERIFY_REQUESTS = systemReleases?.map((systemRelease) => {
-    // 事项编号
-    const { ItemCode } = systemRelease?.values;
+    return new Promise(async (resolve) => {
+      // 事项编号
+      const { ItemCode } = systemRelease?.values;
 
-    const SYNC_DATA = {
-      item_id: ItemCode,
-      ...COMMON_VERIFY_DATA,
-    };
+      const SYNC_DATA = {
+        item_id: ItemCode,
+        ...COMMON_VERIFY_DATA,
+      };
 
-    printLogs(
-      `系统上线计划 ${systemRelease?.key} 附件列表数据整合完毕，数据为`,
-      SYNC_DATA
-    );
+      printLogs(
+        `系统上线计划 ${systemRelease?.key} 附件列表数据整合完毕，数据为`,
+        SYNC_DATA
+      );
 
-    return apis.post(
-      `${ITSM_DOMAIN}/linksystem/openapi/v1/devops/synVerifyResult?apikey=${ITSM_API_KEY}`,
-      ASYNC_ATTACHMENTS
-    );
+      const result = await apis.post(
+        `${ITSM_DOMAIN}/linksystem/openapi/v1/devops/synVerifyResult?apikey=${ITSM_API_KEY}`,
+        SYNC_DATA
+      );
+
+      resolve({
+        ...result?.data,
+        item_id: ItemCode,
+      });
+    });
   });
 
-  printLogs('向ITSM批量发送系统上线计划业务验证结果信息');
+  printLogs("向ITSM批量发送系统上线计划业务验证结果信息");
 
   const sync_result = await Promise.all(SYNC_VERIFY_REQUESTS);
 

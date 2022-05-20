@@ -21,26 +21,26 @@ try {
 
   printLogs(`查询 ${userId} 用户待办事项数据 IQL 语句生成完毕，语句为`, iql);
 
-  printLogs('使用 IQL 语句，调用 proxima-core 接口');
+  printLogs("使用 IQL 语句，调用 proxima-core 接口");
 
   // 查询待办数量
-  const backlogs = await apis.requestCoreApi('POST', '/parse/api/search', {
+  const backlogs = await apis.requestCoreApi("POST", "/parse/api/search", {
     iql,
     from: 0,
-    size: 9999
+    size: 9999,
   });
 
-  printLogs(`用户 ${userId} 待办数量查询完毕，结果为`, backlogs?.count)
+  printLogs(`用户 ${userId} 待办数量查询完毕，结果为`, backlogs?.count);
 
   return {
     success: true,
     data: backlogs?.count,
-    message: '用户待办数据查询成功'
-  }
+    message: "用户待办数据查询成功",
+  };
 } catch (error) {
   return {
     success: false,
-    meesage: error?.message,
+    meesage: "没有找到对应用户，请确认员工号",
     data: 0,
-  }
+  };
 }

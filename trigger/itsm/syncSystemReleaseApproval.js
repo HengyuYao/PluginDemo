@@ -100,7 +100,6 @@ try {
       ItemCode: systemReleaseApprovalItemCode, // 事项编号
       Degree_of_urgency, // 紧急程度
       onlinetime, // 上线日期
-      product_change_type, // 投产变更类型
       system_identification, // 系统标识
       system_manager, // 系统负责人
       editor_story_desc, // 需求描述
@@ -128,6 +127,8 @@ try {
   });
 
   const businessIntention = businessIntentionParse.toJSON();
+
+  const { ItemCode: business_intention_number } = businessIntention?.values;
 
   printLogs(
     `${releaseApprovalKey} 所属业务意向事项数据查询完毕，数据为`,
@@ -187,7 +188,7 @@ try {
     Degree_of_urgency:
       DEGREE_OF_URGENCY_ITSM_ENUM[Degree_of_urgency?.join(",")], // 紧急程度
     change_scope: CHANGE_SCOPE_ITSM_ENUM[change_scope?.join(",")], // 变更范围
-    improtance_degree:
+    importance_degree:
       IMPORTANCE_DEGREE_ITSM_ENUM[improtance_degree?.join(",")], // 重要程度
     radio_online_report: NEED_REPORT_ITSM_ENUM[radio_online_report], // 报备
     system_manager: system_manager // 系统负责人,用户类型，先转成用户名，再连接,
@@ -196,7 +197,6 @@ try {
     demand_leader: demand_leader // 需求牵头人,用户类型，先转成用户名，再连接,
       ?.map((user) => user.username)
       ?.join(","),
-    business_intention_number: businessIntention?.key, // 业务意向编号
     editor_story_desc: convertRichText(editor_story_desc), // 需求描述，从富文本转换成文本
     involved_application_system: systemItems?.map(
       (systemItem) => systemItem?.values?.system_identification
@@ -206,6 +206,7 @@ try {
     onlinetime, // 上线日期
     application_date, // 申请日期
     system_identification, // 系统标识
+    business_intention_number, // 业务意向编号
     business_requirement_name, // 业务需求标题
     business_requirement_number, // 业务需求编号
   };

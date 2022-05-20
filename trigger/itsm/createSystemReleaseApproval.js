@@ -11,7 +11,7 @@ function printLogs(message, data) {
 }
 
 // 系统上线计划事项类型key
-const SYSTEM_ONLINE_APPROVAL_PLAN_ITEM_TYPE_KEY = 'system_online_plan_apply';
+const SYSTEM_ONLINE_APPROVAL_PLAN_ITEM_TYPE_KEY = "system_online_plan_apply";
 
 try {
   const { key: releaseApprovalKey } = body;
@@ -37,11 +37,17 @@ try {
 
   const businessRequirement = businessRequirementParse.toJSON();
 
-  printLogs("上线计划所属业务需求事项数据获取完毕，数据为", businessRequirement);
+  printLogs(
+    "上线计划所属业务需求事项数据获取完毕，数据为",
+    businessRequirement
+  );
 
   // 获取业务需求关联的系统事项
   const {
     name: business_requirement_title,
+    values: {
+      ItemCode: business_requirement_number, // 业务需求编号
+    } = {},
   } = businessRequirement;
 
   // 系统上线计划需要继承自上线计划的数据
@@ -52,7 +58,7 @@ try {
       onlinetime, // 上线日期
       involved_application_system, // 涉及系统
     },
-    objectId: releaseApprovalId
+    objectId: releaseApprovalId,
   } = releaseApprovalItem;
 
   printLogs(
@@ -96,7 +102,7 @@ try {
             system_identification, // 系统标识
             system_manager, // 系统负责人
             bind_system: systemSpaceId, // 绑定空间Id
-          }
+          },
         } = relateSystem;
 
         printLogs(`${relateSystemId} 系统事项绑定的空间ID为`, systemSpaceId);
@@ -110,6 +116,7 @@ try {
         const systemReleaseApprovalValues = {
           // 继承业务需求的标题
           business_requirement_title,
+          business_requirement_number,
           // 继承上线计划的值
           Degree_of_urgency, // 紧急程度
           editor_story_desc, // 需求内容
@@ -118,7 +125,7 @@ try {
           // 继承自系统事项的值
           system_identification, // 系统标识
           system_manager, // 系统负责人
-          system_name: [system_name], // 系统名称
+          dropdown_blong_system: [system_name], // 系统名称
         };
 
         systemReleaseApproval.set({

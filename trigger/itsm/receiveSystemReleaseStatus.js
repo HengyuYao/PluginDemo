@@ -81,7 +81,7 @@ const STATUS_ID_TO_NAME_ENUM = {
   [EVALUATE_FAILED_STATUS_ID]: EVALUATE_FAILED_STATUS_NAME,
   [RELEASE_SUCCESS_STATUS_ID]: RELEASE_SUCCESS_STATUS_NAME,
   [RELEASE_CANCEL_STATUS_ID]: RELEASE_CANCEL_STATUS_NAME,
-  [RELEASE_ROLLBACK_STATUS_ID]: RELEASE_ROLLBACK_STATUS_NAME
+  [RELEASE_ROLLBACK_STATUS_ID]: RELEASE_ROLLBACK_STATUS_NAME,
 };
 
 try {
@@ -122,14 +122,16 @@ try {
 
   printLogs(`查询事项 ${systemReleaseApprovalItemCode} 对应的数据`);
 
-  const SystemReleaseQuery = await apis.getParseQuery(false, 'Item');
+  const SystemReleaseQuery = await apis.getParseQuery(false, "Item");
 
-  const systemReleaseApprovalParse = await SystemReleaseQuery
-    .equalTo("values.ItemCode", systemReleaseApprovalItemCode)
-    .include(['status'])
+  const systemReleaseApprovalParse = await SystemReleaseQuery.equalTo(
+    "values.ItemCode",
+    systemReleaseApprovalItemCode
+  )
+    .include(["status"])
     .first({ sessionToken });
 
-  console.log(systemReleaseApprovalParse)
+  console.log(systemReleaseApprovalParse);
 
   const systemReleaseApproval = systemReleaseApprovalParse.toJSON();
 
@@ -140,10 +142,7 @@ try {
 
   const {
     objectId: systemReleaseApprovalId,
-    status: {
-      objectId: CURRENT_STATUS_ID,
-      name: CURRENT_STATUS_NAME
-    },
+    status: { objectId: CURRENT_STATUS_ID, name: CURRENT_STATUS_NAME },
   } = systemReleaseApproval;
 
   printLogs(
@@ -165,7 +164,8 @@ try {
         message: `上线计划当前状态为 ${CURRENT_STATUS_NAME}，无法流转至 ${TARGET_STATUS_NAME} 状态`,
       };
     }
-  } else if ( // 流转至上线后的相关状态
+  } else if (
+    // 流转至上线后的相关状态
     [
       STATUS_CODE_ENUM.RELEASE_ROLLBACK,
       STATUS_CODE_ENUM.RELEASE_SUCCESS,
@@ -197,9 +197,13 @@ try {
 
   return {
     success: true,
-    data: null,
+    code: 200,
     message: "系统上线计划状态同步成功",
   };
 } catch (error) {
-  return error?.message;
+  return {
+    code: 999,
+    message: error?.message,
+    success: false,
+  };
 }

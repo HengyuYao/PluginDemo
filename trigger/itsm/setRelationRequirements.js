@@ -11,10 +11,10 @@ function printLogs(message, data) {
 }
 
 // 业务需求事项类型key
-const BUSINESS_REQUIREMENT_ITEM_TYPE_KEY = 'YWXQ';
+const BUSINESS_REQUIREMENT_ITEM_TYPE_KEY = "YWXQ";
 
 // 上线计划事项类型key
-const ONLINE_PLAN_ITEM_TYPE_KEY = 'online_plan_apply';
+const ONLINE_PLAN_ITEM_TYPE_KEY = "online_plan_apply";
 
 // 【待投产】事项状态id
 const WILL_RELEASE_STATUS_ID = "KFHC1wdKm6";
@@ -90,7 +90,7 @@ try {
 
   printLogs("计算完成，最终符合条件的业务需求数据ID为", requirementIdsList);
 
-  printLogs(`开始更新 ${releaseApprovalKey} 投产变更申请单关联业务需求字段`);
+  printLogs(`开始更新 ${releaseApprovalKey} 投产变更申请单申请上线需求字段`);
 
   const releaseApprovalParse = await apis.getData(false, "Item", {
     key: releaseApprovalKey,
@@ -100,7 +100,7 @@ try {
     "PUT",
     `/parse/api/items/${releaseApprovalParse.id}`,
     {
-      "values.associated_business_requirement": requirementIdsList,
+      "values.shenqingshangxian_xq": requirementIdsList,
     }
   );
 

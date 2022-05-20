@@ -221,7 +221,7 @@ try {
     );
   });
 
-  printLogs('向ITSM批量发送系统上线计划附件列表请求');
+  printLogs("向ITSM批量发送系统上线计划附件列表请求");
 
   const sync_result = await Promise.all(SYNC_ATTACHMENTS_REQUESTS);
 
