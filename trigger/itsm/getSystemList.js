@@ -10,8 +10,8 @@ function printLogs(message, data) {
   }
 }
 
-// 系统类型事项key
-const SYSTEM_ITEM_TYPE_KEY = "system";
+// 系统类型事项objectId
+const SYSTEM_ITEM_TYPE_ID = "V0bSddvrdS";
 
 try {
   printLogs("接到 ITSM 平台获取 Devops 平台系统类型事项请求");
@@ -19,7 +19,7 @@ try {
   printLogs("开始获取系统事项类型数据");
 
   const systemTypeParse = await apis.getData(false, "ItemType", {
-    key: SYSTEM_ITEM_TYPE_KEY,
+    objectId: SYSTEM_ITEM_TYPE_ID,
   });
 
   const systemType = systemTypeParse.toJSON();

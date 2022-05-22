@@ -10,11 +10,11 @@ function printLogs(message, data) {
   }
 }
 
-// 业务需求事项类型key
-const BUSINESS_REQUIREMENT_ITEM_TYPE_KEY = "YWXQ";
+// 业务需求事项类型objectId
+const BUSINESS_REQUIREMENT_ITEM_TYPE_ID = "QH0cYP3Gj1";
 
-// 上线计划事项类型key
-const ONLINE_PLAN_ITEM_TYPE_KEY = "online_plan_apply";
+// 上线计划事项类型objectId
+const ONLINE_PLAN_ITEM_TYPE_ID = "pNqrF0fOPT";
 
 // 【待投产】事项状态id
 const WILL_RELEASE_STATUS_ID = "KFHC1wdKm6";
@@ -33,19 +33,11 @@ try {
 
   printLogs(`查询处于【待投产】的业务需求数据`);
 
-  const businessRequirementTypeParse = await apis.getData(false, "ItemType", {
-    key: BUSINESS_REQUIREMENT_ITEM_TYPE_KEY,
-  });
-
-  const businessRequirementType = businessRequirementTypeParse.toJSON();
-
-  printLogs("业务需求事项类型数据查询完成，数据为", businessRequirementType);
-
   // 拿到 Item 表的 parse query
   const itemParseQuery = await apis.getParseQuery(false, "Item");
 
   const requirementsListParse = await itemParseQuery
-    .equalTo("itemType", businessRequirementType?.objectId) // 业务需求
+    .equalTo("itemType", BUSINESS_REQUIREMENT_ITEM_TYPE_ID) // 业务需求
     .equalTo("status", WILL_RELEASE_STATUS_ID) // 待投产状态
     .findAll({ sessionToken });
 
@@ -57,16 +49,8 @@ try {
 
   printLogs("查询处于【评估通过】状态的上线计划事项列表");
 
-  const systemReleaseTypeParse = await apis.getData(false, "ItemType", {
-    key: ONLINE_PLAN_ITEM_TYPE_KEY,
-  });
-
-  const systemReleaseType = systemReleaseTypeParse.toJSON();
-
-  printLogs("上线计划事项类型数据查询完成，数据为", businessRequirementType);
-
   const systemReleasesParse = await itemParseQuery
-    .equalTo("itemType", systemReleaseType?.objectId)
+    .equalTo("itemType", ONLINE_PLAN_ITEM_TYPE_ID)
     .equalTo("status", EVALUATE_PASS_STATUS_ID) // 评估通过状态
     .findAll({ sessionToken });
 

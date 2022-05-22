@@ -10,11 +10,11 @@ function printLogs(message, data) {
   }
 }
 
-// 系统上线计划事项类型key
-const SYSTEM_ONLINE_APPROVAL_PLAN_ITEM_TYPE_KEY = "system_online_plan_apply";
+// 系统上线计划事项类型objectId
+const SYSTEM_ONLINE_APPROVAL_PLAN_ITEM_TYPE_ID = "SglszQZ2nt";
 
-// 需求审批单事项类型key
-const REQUIREMENT_APPROVAL_ITEM_TYPE_KEY = "XQSP";
+// 需求审批单事项类型objectId
+const REQUIREMENT_APPROVAL_ITEM_TYPE_ID = "qFNCQ7zWnw";
 
 // 【评估通过】事项状态id
 const EVALUATE_PASS_STATUS_ID = "fqdDibfUlR";
@@ -49,19 +49,10 @@ try {
 
   printLogs(`依次查询 ${shenqingshangxian_xq} 业务需求对应的需求审批单事项`);
 
-  // 查询系统上线计划事项类型
-  const requirementApprovalTypeParse = await apis.getData(false, "ItemType", {
-    key: REQUIREMENT_APPROVAL_ITEM_TYPE_KEY,
-  });
-
-  const requirementApprovalType = requirementApprovalTypeParse.toJSON();
-
   const RequirementApprovalQuery = await apis.getParseQuery(false, "Item");
 
-  const requirementApprovalsParse = await RequirementApprovalQuery.equalTo(
-    "itemType",
-    requirementApprovalType?.objectId
-  ) // 需求审批单类型
+  const requirementApprovalsParse = await RequirementApprovalQuery
+    .equalTo("itemType", REQUIREMENT_APPROVAL_ITEM_TYPE_ID) // 需求审批单类型
     .containedIn("values.associated_business_requirement", shenqingshangxian_xq) // 需求审批单关联需求字段包含申请上线需求中的任意一个
     .findAll({ sessionToken });
 
@@ -97,20 +88,11 @@ try {
     `依次查询 ${shenqingshangxian_xq} 业务需求下处于【评估通过】状态的系统上线计划列表`
   );
 
-  // 查询系统上线计划事项类型
-  const systemReleaseTypeParse = await apis.getData(false, "ItemType", {
-    key: SYSTEM_ONLINE_APPROVAL_PLAN_ITEM_TYPE_KEY,
-  });
-
-  const systemReleaseType = systemReleaseTypeParse.toJSON();
-
   // 获取 ParseQuery
   const SystemReleaseQuery = await apis.getParseQuery(false, "Item");
 
-  const systemReleaseItemsParse = await SystemReleaseQuery.equalTo(
-    "itemType",
-    systemReleaseType?.objectId
-  ) // 系统上线计划类型
+  const systemReleaseItemsParse = await SystemReleaseQuery
+    .equalTo("itemType", SYSTEM_ONLINE_APPROVAL_PLAN_ITEM_TYPE_ID) // 系统上线计划类型
     .equalTo("status", EVALUATE_PASS_STATUS_ID) // 评估通过状态
     .containedIn("ancestors", shenqingshangxian_xq) // 系统上线计划在对应业务需求下
     .findAll({ sessionToken });

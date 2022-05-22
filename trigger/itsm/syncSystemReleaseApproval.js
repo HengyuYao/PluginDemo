@@ -68,8 +68,8 @@ const ITSM_DOMAIN = global.env.ITSM_DOMAIN;
 // ITSM 的Apikey
 const ITSM_API_KEY = global.env.ITSM_API_KEY;
 
-// 系统类型事项的key
-const SYSTEM_ITEM_TYPE_KEY = "system";
+// 系统类型事项的objectId
+const SYSTEM_ITEM_TYPE_ID = "V0bSddvrdS";
 
 try {
   const { key: releaseApprovalKey } = body;
@@ -158,19 +158,10 @@ try {
 
   printLogs(`查询系统上线计划涉及系统 ${involved_application_system} 相关数据`);
 
-  //
-  const systemTypeParse = await apis.getData(false, "ItemType", {
-    key: SYSTEM_ITEM_TYPE_KEY,
-  });
-
-  const systemType = systemTypeParse.toJSON();
-
   const SystemItemQuery = await apis.getParseQuery(false, "Item");
 
-  const systemItemsParse = await SystemItemQuery.equalTo(
-    "itemType",
-    systemType.objectId
-  ) // 系统类型事项
+  const systemItemsParse = await SystemItemQuery
+    .equalTo("itemType", SYSTEM_ITEM_TYPE_ID) // 系统类型事项
     .containedIn("objectId", involved_application_system) // id为涉及系统引用字段关联的数据
     .findAll({ sessionToken });
 

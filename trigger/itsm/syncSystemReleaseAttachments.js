@@ -10,8 +10,8 @@ function printLogs(message, data) {
   }
 }
 
-// 系统上线计划事项类型key
-const SYSTEM_ONLINE_APPROVAL_PLAN_ITEM_TYPE_KEY = "system_online_plan_apply";
+// 系统上线计划事项类型objectId
+const SYSTEM_ONLINE_APPROVAL_PLAN_ITEM_TYPE_ID = "SglszQZ2nt";
 
 // 投产变更申请单 - 业务测试报告审批表
 const BUSINESS_TEST_APPROVAL = "BUSINESS_TEST_APPROVAL";
@@ -98,21 +98,11 @@ try {
 
   printLogs(`查询 ${releaseApprovalKey} 上线计划下的系统上线计划数据`);
 
-  const systemReleaseTypeParse = await apis.getData(false, "ItemType", {
-    key: SYSTEM_ONLINE_APPROVAL_PLAN_ITEM_TYPE_KEY,
-  });
-
-  const systemReleaseType = systemReleaseTypeParse.toJSON();
-
-  printLogs("系统上线计划事项类型数据查询完成，数据为", systemReleaseType);
-
-  // 拿到事项查询方法
+  // 拿到 PARSE QUERY
   const SystemReleaseQuery = await apis.getParseQuery(false, "Item");
 
-  const systemReleasesParse = await SystemReleaseQuery.equalTo(
-    "itemType",
-    systemReleaseType?.objectId
-  ) // 系统上线计划事项类型
+  const systemReleasesParse = await SystemReleaseQuery
+    .equalTo("itemType", SYSTEM_ONLINE_APPROVAL_PLAN_ITEM_TYPE_ID) // 系统上线计划事项类型
     .containedIn("ancestors", [releaseApprovalId]) // 在上线计划的下
     .findAll({ sessionToken });
 
