@@ -59,6 +59,7 @@ try {
       involved_application_system, // 涉及系统
     },
     objectId: releaseApprovalId,
+    name: releaseApprovalName,
   } = releaseApprovalItem;
 
   printLogs(
@@ -139,8 +140,8 @@ try {
           // 设置层级关系，在上线计划的下一层
           ancestors: [...releaseApprovalItem?.ancestors, releaseApprovalId],
           ancestorsCount: 3,
-          // 事项名称，由 [事项类型系统名称]-业务需求名称 组成
-          name: `[XTSX${system_name}]-${business_requirement_title}`,
+          // 事项名称，由 [事项类型系统名称]-上线计划名称 组成
+          name: `[XTSX${system_name}]-${releaseApprovalName}`,
           values: systemReleaseApprovalValues,
           createdBy: myApp.toJSON().createdBy,
         });

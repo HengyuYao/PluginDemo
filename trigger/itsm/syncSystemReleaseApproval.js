@@ -209,17 +209,17 @@ try {
 
   printLogs("向ITSM同步系统投产变更审批单数据");
 
-  const asyncResult = await apis.post(
+  const sync_result = await apis.post(
     `${ITSM_DOMAIN}/linksystem/openapi/v1/devops/createTicket?apikey=${ITSM_API_KEY}`,
     ASYNC_DATA_TO_ITSM
   );
 
-  printLogs("向ITSM同步信息成功，相应结果为", asyncResult);
+  printLogs("向ITSM同步信息成功，相应结果为", sync_result);
 
   return {
     success: true,
     message: "同步成功",
-    data: asyncResult,
+    data: sync_result?.data,
   };
 } catch (error) {
   return error?.message;

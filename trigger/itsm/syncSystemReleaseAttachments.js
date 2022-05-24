@@ -218,7 +218,7 @@ try {
   return {
     success: true,
     message: "同步成功",
-    data: sync_result,
+    data: sync_result?.data,
   };
 } catch (error) {
   return error?.message;
