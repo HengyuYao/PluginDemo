@@ -475,7 +475,7 @@ try {
 
   const REQUEST_PARAMS = {
     sign,
-    backList: ["HS0000830"].map((username) => {
+    backList: userList.map((username) => {
       printLogs(`整合加密向 ${username} 用户传递待办信息的单点登录路径`);
 
       // proxima事项详情页面
