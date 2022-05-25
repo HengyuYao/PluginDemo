@@ -56,7 +56,8 @@ try {
       Degree_of_urgency, // 紧急程度
       editor_story_desc, // 需求描述
       onlinetime, // 上线日期
-      involved_application_system, // 涉及系统
+      shejixitong, // 涉及系统
+      demand_leader, // 需求牵头人
     },
     objectId: releaseApprovalId,
     name: releaseApprovalName,
@@ -64,7 +65,7 @@ try {
 
   printLogs(
     "当前上线计划事项的涉及系统字段数据为",
-    involved_application_system
+    shejixitong
   );
 
   printLogs("查询系统上线计划事项类型");
@@ -79,7 +80,7 @@ try {
   printLogs("生成批量创建系统上线计划事项请求");
 
   // 生成创建系统上线计划请求
-  const createSystemReleaseApprovalRequests = involved_application_system?.map(
+  const createSystemReleaseApprovalRequests = shejixitong?.map(
     (relateSystemId) => {
       return new Promise(async (resolve, reject) => {
         printLogs(`查询 ${relateSystemId} 系统事项数据`);
@@ -100,9 +101,9 @@ try {
         const {
           name: system_name,
           values: {
-            system_identification, // 系统标识
             system_manager, // 系统负责人
             bind_system: systemSpaceId, // 绑定空间Id
+            ItemCode: system_identification, // 事项编号 - 系统标识
           },
         } = relateSystem;
 
@@ -119,6 +120,7 @@ try {
           business_requirement_title,
           business_requirement_number,
           // 继承上线计划的值
+          demand_leader,
           Degree_of_urgency, // 紧急程度
           editor_story_desc, // 需求内容
           onlinetime, // 上线日期
@@ -127,6 +129,7 @@ try {
           system_identification, // 系统标识
           system_manager, // 系统负责人
           dropdown_blong_system: [system_name], // 系统名称
+          suoshuxitong: [relateSystemId], // 所属系统
         };
 
         systemReleaseApproval.set({

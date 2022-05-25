@@ -72,29 +72,30 @@ const ITSM_API_KEY = global.env.ITSM_API_KEY;
 const SYSTEM_ITEM_TYPE_ID = "V0bSddvrdS";
 
 try {
-  const { key: releaseApprovalKey } = body;
+  const { key: systemReleaseApprovalKey } = body;
 
   printLogs(
-    `系统上线计划申请单 ${releaseApprovalKey} 提交评估，开始向ITSM系统同步数据`
+    `系统上线计划申请单 ${systemReleaseApprovalKey} 提交评估，开始向ITSM系统同步数据`
   );
 
-  printLogs(`获取 ${releaseApprovalKey} 系统上线计划申请单数据`);
+  printLogs(`获取 ${systemReleaseApprovalKey} 系统上线计划申请单数据`);
 
-  const releaseApprovalParse = await apis.getData(false, "Item", {
-    key: releaseApprovalKey,
+  const systemReleaseApprovalParse = await apis.getData(false, "Item", {
+    key: systemReleaseApprovalKey,
   });
 
-  const releaseApproval = releaseApprovalParse.toJSON();
+  const systemReleaseApproval = systemReleaseApprovalParse.toJSON();
 
   printLogs(
-    `${releaseApprovalKey} 系统上线计划申请单事项数据查询完成，数据为`,
-    releaseApproval
+    `${systemReleaseApprovalKey} 系统上线计划申请单事项数据查询完成，数据为`,
+    systemReleaseApproval
   );
 
   const {
     ancestors: [
       business_intention_id, // 业务意向ID
       business_requirement_id, // 业务需求ID
+      release_approval_id, // 上线计划ID
     ] = [],
     values: {
       ItemCode: systemReleaseApprovalItemCode, // 事项编号
@@ -106,21 +107,20 @@ try {
       change_scope, // 变更范围
       improtance_degree, // 重要程度
       radio_online_report, // 报备
-      involved_application_system, // 涉及系统
       dropdown_production_type, // 投产类型
     } = {},
-    objectId: releaseApprovalId,
-  } = releaseApproval;
+    objectId: systemReleaseApprovalId,
+  } = systemReleaseApproval;
 
   // 生成申请时间，默认取当天
   const application_date = new Date().getTime();
 
   // 保存申请时间数据到事项中
-  apis.requestCoreApi("PUT", `/parse/api/items/${releaseApprovalId}`, {
+  apis.requestCoreApi("PUT", `/parse/api/items/${systemReleaseApprovalId}`, {
     values: { application_date },
   });
 
-  printLogs(`获取 ${releaseApprovalKey} 所属业务意向事项数据`);
+  printLogs(`获取 ${systemReleaseApprovalKey} 所属业务意向事项数据`);
 
   const businessIntentionParse = await apis.getData(false, "Item", {
     objectId: business_intention_id,
@@ -131,11 +131,11 @@ try {
   const { ItemCode: business_intention_number } = businessIntention?.values;
 
   printLogs(
-    `${releaseApprovalKey} 所属业务意向事项数据查询完毕，数据为`,
+    `${systemReleaseApprovalKey} 所属业务意向事项数据查询完毕，数据为`,
     businessIntention
   );
 
-  printLogs(`获取 ${releaseApprovalKey} 所属业务需求事项数据`);
+  printLogs(`获取 ${systemReleaseApprovalKey} 所属业务需求事项数据`);
 
   const businessRequirementParse = await apis.getData(false, "Item", {
     objectId: business_requirement_id,
@@ -152,23 +152,39 @@ try {
   } = businessRequirement;
 
   printLogs(
-    `${releaseApprovalKey} 所属业务需求事项数据查询完毕，数据为`,
+    `${systemReleaseApprovalKey} 所属业务需求事项数据查询完毕，数据为`,
     businessRequirement
   );
 
-  printLogs(`查询系统上线计划涉及系统 ${involved_application_system} 相关数据`);
+  printLogs(`获取 ${systemReleaseApprovalKey} 所属上线计划事项数据`);
+
+  const releaseApprovalParse = await apis.getData(false, "Item", {
+    objectId: release_approval_id,
+  });
+
+  const releaseApproval = releaseApprovalParse.toJSON();
+
+  // 涉及系统
+  const { shejixitong } = releaseApproval?.values;
+
+  printLogs(
+    `${systemReleaseApprovalKey} 所属上线计划事项数据查询完毕，数据为`,
+    releaseApproval
+  );
+
+  printLogs(`查询上线计划涉及系统 ${shejixitong} 相关数据`);
 
   const SystemItemQuery = await apis.getParseQuery(false, "Item");
 
   const systemItemsParse = await SystemItemQuery
     .equalTo("itemType", SYSTEM_ITEM_TYPE_ID) // 系统类型事项
-    .containedIn("objectId", involved_application_system) // id为涉及系统引用字段关联的数据
+    .containedIn("objectId", shejixitong) // id为涉及系统引用字段关联的数据
     .findAll({ sessionToken });
 
   const systemItems = systemItemsParse?.map((system) => system.toJSON());
 
   printLogs(
-    `系统上线计划涉及系统 ${involved_application_system} 详细数据查询完毕，数据为`,
+    `系统上线计划涉及系统 ${shejixitong} 详细数据查询完毕，数据为`,
     systemItems
   );
 
@@ -190,7 +206,7 @@ try {
       ?.join(","),
     editor_story_desc: convertRichText(editor_story_desc), // 需求描述，从富文本转换成文本
     involved_application_system: systemItems?.map(
-      (systemItem) => systemItem?.values?.system_identification
+      (systemItem) => systemItem?.values?.ItemCode // 事项编号为系统标识
     ),
     // 不需要处理直接传递的数据
     item_id: systemReleaseApprovalItemCode, // 事项编号
