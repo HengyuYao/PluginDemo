@@ -40,16 +40,25 @@ const RELEASE_ROLLBACK_STATUS_ID = "SqD58KvjOY";
 
 const RELEASE_ROLLBACK_STATUS_NAME = "上线回退";
 
+// 【上传材料】事项状态id与名称
+const UPLOAD_ATTACHMENTS_STATUS_ID = "E58x6y7GrN";
+
+const UPLOAD_ATTACHMENTS_STATUS_NAME = "上传材料";
+
 // 【待投产】事项状态id
 const WILL_RELEASE_STATUS_ID = "KFHC1wdKm6";
 
 // 【风险评估中】事项状态id与名称
 const IN_EVALUATE_STATUS_ID = "UueCLCVtcO";
 
+// 缺陷上线计划事项类型ID
+const BUG_RELEASE_ITEM_TYPE_ID = "iYh6g4qFov";
+
 /**
  * 与 ITSM 约定的事项状态枚举
  *  0：关闭
- *  1：评估通过
+ *  1：评估通过 / 上传材料
+ *    系统上线计划流转到【评估通过】，缺陷上线计划流转到【上传材料】
  *  2：评估未通过
  *  3：上线成功
  *  4：上线取消
@@ -86,14 +95,18 @@ const STATUS_ID_TO_NAME_ENUM = {
 
 try {
   const {
-    item_id: systemReleaseApprovalItemCode, // 系统上线计划申请单事项Id
+    item_id: releasePlanItemCode, // 系统/缺陷上线计划事项Id
     status, // ITSM同步的最新状态
   } = body;
 
-  // 拿出目标状态 id 和 名称
-  const TARGET_STATUS_ID = STATUS_CODE_TO_ID_ENUM[status];
+  printLogs(
+    `开始处理ITSM发送的事项编号为 ${releasePlanItemCode} 的系统/缺陷上线计划最新状态同步请求`
+  );
 
-  const TARGET_STATUS_NAME = STATUS_ID_TO_NAME_ENUM[TARGET_STATUS_ID];
+  // 拿出目标状态 id 和 名称
+  let TARGET_STATUS_ID = STATUS_CODE_TO_ID_ENUM[status];
+
+  let TARGET_STATUS_NAME = STATUS_ID_TO_NAME_ENUM[TARGET_STATUS_ID];
 
   // 判断目标状态数据是否正常
   if (!TARGET_STATUS_ID) {
@@ -104,8 +117,32 @@ try {
     };
   }
 
+  printLogs(`查询事项 ${releasePlanItemCode} 对应的数据`);
+
+  const ItemParseQuery = await apis.getParseQuery(false, "Item");
+
+  const releasePlanParse = await ItemParseQuery
+    .equalTo("values.ItemCode", releasePlanItemCode) // 事项编号
+    .include(["status"]) // 包含状态信息
+    .first({ sessionToken });
+
+  const releasePlan = releasePlanParse.toJSON();
+
+  printLogs(`事项 ${releasePlanItemCode} 数据查询完毕，数据为`, releasePlan);
+
+  // 根据条件判断，是否需要额外处理目标状态
+  if (
+    status === 1 && // 评估通过状态
+    releasePlan?.itemType?.objectId === BUG_RELEASE_ITEM_TYPE_ID // 事项类型是缺陷上线计划
+  ) {
+    // 重置目标状态ID和名称，指向【上传材料】
+    TARGET_STATUS_ID = UPLOAD_ATTACHMENTS_STATUS_ID;
+
+    TARGET_STATUS_NAME = UPLOAD_ATTACHMENTS_STATUS_NAME;
+  }
+
   printLogs(
-    `接收到ITSM同步的编号为 ${systemReleaseApprovalItemCode} 的系统上线计划状态，目标状态为`,
+    `${releasePlanItemCode} 的系统/缺陷上线计划目标状态为`,
     TARGET_STATUS_NAME
   );
 
@@ -120,42 +157,26 @@ try {
 
   printLogs(`目标状态 ${TARGET_STATUS_NAME} 数据查询成功，为`, targetStatus);
 
-  printLogs(`查询事项 ${systemReleaseApprovalItemCode} 对应的数据`);
-
-  const SystemReleaseQuery = await apis.getParseQuery(false, "Item");
-
-  const systemReleaseApprovalParse = await SystemReleaseQuery.equalTo(
-    "values.ItemCode",
-    systemReleaseApprovalItemCode
-  )
-    .include(["status"])
-    .first({ sessionToken });
-
-  console.log(systemReleaseApprovalParse);
-
-  const systemReleaseApproval = systemReleaseApprovalParse.toJSON();
-
-  printLogs(
-    `事项 ${systemReleaseApprovalItemCode} 数据查询完毕，数据为`,
-    systemReleaseApproval
-  );
-
   const {
-    objectId: systemReleaseApprovalId,
+    objectId: releasePlanId,
     status: { objectId: CURRENT_STATUS_ID, name: CURRENT_STATUS_NAME },
-  } = systemReleaseApproval;
+  } = releasePlan;
 
   printLogs(
-    `对事项 ${systemReleaseApprovalItemCode} 状态流转进行校验，当前状态为 ${CURRENT_STATUS_NAME}，目标状态为 ${TARGET_STATUS_NAME}`
+    `对事项 ${releasePlanItemCode} 状态流转进行校验，当前状态为 ${CURRENT_STATUS_NAME}，目标状态为 ${TARGET_STATUS_NAME}`
   );
 
   /**
    * 处理流转时的业务异常流程：
-   *   1. 关闭状态只能从评估中/评估通过状态流转
+   *   1. 关闭状态只能从 评估中/评估通过/上传材料 状态流转
    *   2. 上线相关只能在评估通过状态流转
    */
   if (status === STATUS_CODE_ENUM.CLOSE_STATE) {
-    const validStatusId = [IN_EVALUATE_STATUS_ID, EVALUATE_PASS_STATUS_ID];
+    const validStatusId = [
+      IN_EVALUATE_STATUS_ID,
+      EVALUATE_PASS_STATUS_ID,
+      UPLOAD_ATTACHMENTS_STATUS_ID,
+    ];
 
     if (!validStatusId.includes(CURRENT_STATUS_ID)) {
       return {
@@ -183,22 +204,20 @@ try {
   }
 
   printLogs(
-    `业务逻辑校验通过，将 ${systemReleaseApprovalItemCode} 事项流转到至 ${TARGET_STATUS_NAME} 状态`
+    `业务逻辑校验通过，将 ${releasePlanItemCode} 事项流转到至 ${TARGET_STATUS_NAME} 状态`
   );
 
   await apis.requestCoreApi("POST", "/parse/functions/transitionItem", {
-    id: systemReleaseApprovalId,
+    id: releasePlanId,
     destinationStatus: targetStatus?.objectId,
   });
 
-  printLogs(
-    `成功将 ${systemReleaseApprovalId} 系统上线计划申请单事项流转至目标状态`
-  );
+  printLogs(`成功将 ${releasePlanItemCode} 系统上线计划事项流转至目标状态`);
 
   return {
     success: true,
     code: 200,
-    message: "系统上线计划状态同步成功",
+    message: "系统/缺陷上线计划状态同步成功",
   };
 } catch (error) {
   return {

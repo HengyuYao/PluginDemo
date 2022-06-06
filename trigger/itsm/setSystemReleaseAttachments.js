@@ -26,7 +26,7 @@ try {
   const { key: changeApprovalKey } = body;
 
   printLogs(
-    `投产变更申请单 ${changeApprovalKey} 审批通过，开始将附件同步至系统上线计划申请单`
+    `投产变更申请单 ${changeApprovalKey} 审批通过，开始将附件同步至系统上线计划`
   );
 
   printLogs(`查询投产变更申请单 ${changeApprovalKey} 事项信息`);
