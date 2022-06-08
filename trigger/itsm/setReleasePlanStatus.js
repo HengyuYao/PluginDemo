@@ -20,7 +20,7 @@ const RELEASE_SUCCESS_STATUS_ID = "2tsuAN31Nu";
 const BUSINESS_VERIFY_STATUS_ID = "7yh7PB7MZ4";
 
 // 【人工确认】事项状态ID
-const MANUAL_CONFIRMATION_STATUS_ID = "IQeEKEBvhL";
+const MANUAL_CONFIRMATION_STATUS_ID = "VBUYSzBYLJ";
 
 try {
   // 上线计划事项key与objectId
