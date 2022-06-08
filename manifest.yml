@@ -1,8 +1,87 @@
 modules:
   webtrigger:
+    # 创建系统上线计划
+    - key: createSystemReleaseApproval
+      function: create-SystemReleaseApproval
+    # 向ITSM同步系统上线计划数据
+    - key: syncSystemReleaseApproval
+      function: sync-SystemReleaseApproval
+    # 向ITSM同步系统上线计划附件信息
+    - key: syncSystemReleaseAttachments
+      function: sync-SystemReleaseAttachments
+    # 向ITSM同步缺陷上线计划数据
+    - key: syncBugFixPlanApproval
+      function: sync-BugFixPlanApproval
+    # 向ITSM同步缺陷上线计划附件信息
+    - key: syncBugFixAttachments
+      function: sync-BugFixAttachments
+    # 接收ITSM同步的系统上线计划最新状态
+    - key: receiveSystemReleaseStatus
+      function: receive-SystemReleaseStatus
+    # 创建投产变更申请单事项时计算相应的业务需求并写入
+    - key: setRelationRequirements
+      function: set-RelationRequirements
+    # 投产变更申请单通过时将附件写入系统上线计划
+    - key: setSystemReleaseAttachments
+      function: set-SystemReleaseAttachments
+    # 系统上线计划全部上线完成后，流转上线计划状态
+    - key: setReleasePlanStatus
+      function: set-ReleasePlanStatus
+    # 向ITSM同步系统上线计划验证结果
+    - key: syncOnlineVerifyResult
+      function: sync-OnlineVerifyResult
+    # 向ITSM同步缺陷上线计划验证结果
+    - key: syncBugFixVerifyResult
+      function: sync-BugFixVerifyResult
+    # 向ITSM返回系统事项类型的数据列表
+    - key: getSystemList
+      function: get-SystemList
+    # 向ITSM返回对应用户的待办列表
+    - key: getUserBacklogs
+      function: get-UserBacklogs
     # 发送待办消息列表
     - key: syncBacklogs
       function: sync-backlogs
   function:
+    # 创建系统上线计划
+    - key: create-SystemReleaseApproval
+      handler: /trigger/itsm/createSystemReleaseApproval.js
+    # 向ITSM同步系统上线计划数据
+    - key: sync-SystemReleaseApproval
+      handler: /trigger/itsm/syncSystemReleaseApproval.js
+    # 向ITSM同步系统上线计划附件数据
+    - key: sync-SystemReleaseAttachments
+      handler: /trigger/itsm/syncSystemReleaseAttachments.js
+    # 向ITSM同步缺陷上线计划数据
+    - key: sync-BugFixPlanApproval
+      handler: /trigger/itsm/syncBugFixPlanApproval.js
+    # 向ITSM同步缺陷上线计划附件数据
+    - key: sync-BugFixAttachments
+      handler: /trigger/itsm/syncBugFixAttachments.js
+    # 接收ITSM同步的系统上线计划最新状态
+    - key: receive-SystemReleaseStatus
+      handler: /trigger/itsm/receiveSystemReleaseStatus.js
+    # 系统上线计划全部上线完成后，流转上线计划状态
+    - key: set-ReleasePlanStatus
+      handler: /trigger/itsm/setReleasePlanStatus.js
+    # 向ITSM同步系统上线计划验证结果
+    - key: sync-OnlineVerifyResult
+      handler: /trigger/itsm/syncOnlineVerifyResult.js
+    # 向ITSM同步缺陷上线计划验证结果
+    - key: sync-BugFixVerifyResult
+      handler: /trigger/itsm/syncBugFixVerifyResult.js
+    # 创建投产变更申请单事项时计算相应的业务需求并写入
+    - key: set-RelationRequirements
+      handler: /trigger/itsm/setRelationRequirements.js
+    # 投产变更申请单通过时将附件写入系统上线计划
+    - key: set-SystemReleaseAttachments
+      handler: /trigger/itsm/setSystemReleaseAttachments.js
+    # 向ITSM返回系统事项类型的数据列表
+    - key: get-SystemList
+      handler: /trigger/itsm/getSystemList.js
+    # 向ITSM返回对应用户的待办列表
+    - key: get-UserBacklogs
+      handler: /trigger/itsm/getUserBacklogs.js
+    # 发送待办消息列表
     - key: sync-backlogs
-      handler: /trigger/syncBacklogs.js
+      handler: /trigger/oa/syncBacklogs.js
