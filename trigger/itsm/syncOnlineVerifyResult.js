@@ -11,7 +11,7 @@ function printLogs(message, data) {
 }
 
 // 系统上线计划事项类型objectId
-const SYSTEM_ONLINE_APPROVAL_PLAN_ITEM_TYPE_ID = "SglszQZ2nt";
+const SYSTEM_RELEASE_PLAN_ITEM_TYPE_ID = "SglszQZ2nt";
 
 // ITSM 的环境域名
 const ITSM_DOMAIN = global.env.ITSM_DOMAIN;
@@ -51,7 +51,7 @@ try {
   const SystemReleaseQuery = await apis.getParseQuery(false, "Item");
 
   const systemReleasesParse = await SystemReleaseQuery
-    .equalTo("itemType", SYSTEM_ONLINE_APPROVAL_PLAN_ITEM_TYPE_ID) // 系统上线计划事项类型
+    .equalTo("itemType", SYSTEM_RELEASE_PLAN_ITEM_TYPE_ID) // 系统上线计划事项类型
     .containedIn("ancestors", [releasePlanId]) // 在上线计划的下
     .findAll({ sessionToken });
 

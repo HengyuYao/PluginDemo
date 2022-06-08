@@ -24,6 +24,9 @@ modules:
     # 投产变更申请单通过时将附件写入系统上线计划
     - key: setSystemReleaseAttachments
       function: set-SystemReleaseAttachments
+    # 系统上线计划全部上线完成后，流转上线计划状态
+    - key: setReleasePlanStatus
+      function: set-ReleasePlanStatus
     # 向ITSM同步系统上线计划验证结果
     - key: syncOnlineVerifyResult
       function: sync-OnlineVerifyResult
@@ -58,6 +61,9 @@ modules:
     # 接收ITSM同步的系统上线计划最新状态
     - key: receive-SystemReleaseStatus
       handler: /trigger/itsm/receiveSystemReleaseStatus.js
+    # 系统上线计划全部上线完成后，流转上线计划状态
+    - key: set-ReleasePlanStatus
+      handler: /trigger/itsm/setReleasePlanStatus.js
     # 向ITSM同步系统上线计划验证结果
     - key: sync-OnlineVerifyResult
       handler: /trigger/itsm/syncOnlineVerifyResult.js

@@ -116,7 +116,7 @@ try {
   const application_date = new Date().getTime();
 
   // 保存申请时间数据到事项中
-  apis.requestCoreApi("PUT", `/parse/api/items/${systemReleaseApprovalId}`, {
+  apis.requestCoreApi("PUT", `/parse/api/items/${systemReleaseApprovalId}/quickEdit`, {
     values: { application_date },
   });
 

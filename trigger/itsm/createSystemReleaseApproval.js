@@ -11,7 +11,7 @@ function printLogs(message, data) {
 }
 
 // 系统上线计划事项类型objectId
-const SYSTEM_ONLINE_APPROVAL_PLAN_ITEM_TYPE_ID = "SglszQZ2nt";
+const SYSTEM_RELEASE_PLAN_ITEM_TYPE_ID = "SglszQZ2nt";
 
 try {
   const { key: releaseApprovalKey } = body;
@@ -71,7 +71,7 @@ try {
   printLogs("查询系统上线计划事项类型");
   // 获取系统上线计划事项类型
   const systemReleaseApprovalType = await apis.getData(false, "ItemType", {
-    objectId: SYSTEM_ONLINE_APPROVAL_PLAN_ITEM_TYPE_ID,
+    objectId: SYSTEM_RELEASE_PLAN_ITEM_TYPE_ID,
   });
 
   // 获取到插件信息，用于创建事项

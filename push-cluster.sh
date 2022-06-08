@@ -6,7 +6,7 @@ set -e;
 NAMESPACE=huishang
 
 # Proxima-Core Pod名称
-POD_NAME=gitee-proxima-core-6dc5b5bb49-28cmp
+POD_NAME=gitee-proxima-core-765d86c94c-b68mj
 
 # 插件的UID
 PLUGIN_UID=5e4dd0e2-7130-46c7-a405-d2937bb6f561

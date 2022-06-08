@@ -11,7 +11,7 @@ function printLogs(message, data) {
 }
 
 // 系统上线计划事项类型objectId
-const SYSTEM_ONLINE_APPROVAL_PLAN_ITEM_TYPE_ID = "SglszQZ2nt";
+const SYSTEM_RELEASE_PLAN_ITEM_TYPE_ID = "SglszQZ2nt";
 
 // 需求审批单事项类型objectId
 const REQUIREMENT_APPROVAL_ITEM_TYPE_ID = "qFNCQ7zWnw";
@@ -92,7 +92,7 @@ try {
   const SystemReleaseQuery = await apis.getParseQuery(false, "Item");
 
   const systemReleaseItemsParse = await SystemReleaseQuery
-    .equalTo("itemType", SYSTEM_ONLINE_APPROVAL_PLAN_ITEM_TYPE_ID) // 系统上线计划类型
+    .equalTo("itemType", SYSTEM_RELEASE_PLAN_ITEM_TYPE_ID) // 系统上线计划类型
     .equalTo("status", EVALUATE_PASS_STATUS_ID) // 评估通过状态
     .containedIn("ancestors", shenqingshangxian_xq) // 系统上线计划在对应业务需求下
     .findAll({ sessionToken });

@@ -10,9 +10,6 @@ function printLogs(message, data) {
   }
 }
 
-// 系统上线计划事项类型objectId
-const SYSTEM_ONLINE_APPROVAL_PLAN_ITEM_TYPE_ID = "SglszQZ2nt";
-
 // 系统上线计划 - 投产及变更实施方案
 const EXECUTE_SOLUTION = "EXECUTE_SOLUTION";
 
