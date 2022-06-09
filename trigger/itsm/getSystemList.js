@@ -45,8 +45,8 @@ try {
   const ASYNC_DATA_TO_ITSM = systemItems?.map((systemItem) => {
     const {
       values: {
-        system_identification, // 系统标识
         system_manager, // 系统负责人
+        ItemCode: system_identification, // 系统标识
       } = {},
       name: system_name,
     } = systemItem;
