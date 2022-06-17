@@ -37,7 +37,7 @@ try {
   const {
     VerifyTime: verify_date, // 验证时间
     feedback: verify_opinion, // 业务验证意见
-    yanzhengjieguo: [verify_result], // 验证结果
+    yanzhengjieguo: [verify_result] = [], // 验证结果
     Department, // 所属部门
     Verifier, // 验证人员
     ItemCode: bugfixItemNumber,
