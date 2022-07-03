@@ -1,0 +1,49 @@
+.group{
+  position: relative;
+  .screen{
+    position: absolute;
+    right: 3%;
+    top: 7%;
+    color: #004ed9;
+    cursor: pointer;
+  }
+  
+}
+.screen{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  .select{
+    display: flex;
+    justify-self: space-between;
+    align-items: center;
+    width: 80%;
+    margin: 5px;
+    .expression{
+      margin-left: 14px;
+      flex: 2;
+    }
+    .spaceVal{
+      margin-left: 14px;
+      flex: 3;
+    }
+  }
+}
+.setdata{
+  display: flex;
+  justify-content: space-between;
+}
+.setdata > div {
+  width: 45%;
+}
+.displays{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  .sort{
+    width: 70%;
+  }
+  .input{
+    width: 70%;
+  }
+}

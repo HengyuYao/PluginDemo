@@ -1,2 +1,7 @@
-hs-system-communicate.zip
 .idea
+node_modules
+
+# production
+dist
+build
+*.zip
