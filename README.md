@@ -1,5 +1,14 @@
 # ITSM对接插件
 
+## 开发
+`yarn dev`
+
+## 构建
+`yarn build`
+
+## 插件打包
+`yarn build-app`
+
 ## 需求文档
 请查阅项目中的以下两个文档：
 
