@@ -11,8 +11,15 @@ function printLogs(message, data) {
 }
 
 // 系统上线计划事项类型objectId
-const SYSTEM_RELEASE_PLAN_ITEM_TYPE_ID = "SglszQZ2nt";
+const SYSTEM_RELEASE_PLAN_ITEM_TYPE_ID = global?.env?.systemReleasePlanTypeId || "SglszQZ2nt";
 
+// 系统子需求事项类型的key
+const SYSTEM_CHILD_REQUIREMENT_ITEM_TYPE_ID = global?.env?.systemChildRequirementTypeId || 'MMRH7KxHmQ';
+
+// 过滤字段（是否投产）的key和value
+const FILTER_KEY = global?.env?.filterKey || 'shifoutouchan';
+const FILTER_VALUE = global?.env?.filterValue || ['1'];
+const KEY = global?.env?.key || 'suoshuxitong';
 try {
   const { key: releaseApprovalKey } = body;
 
@@ -68,6 +75,21 @@ try {
     shejixitong
   );
 
+  printLogs("查询可投产的系统子需求", `${SYSTEM_CHILD_REQUIREMENT_ITEM_TYPE_ID} ${FILTER_KEY} ${FILTER_VALUE} ${KEY}`);
+  const systemRequirementQuery = await apis.getParseQuery(false, "Item");
+
+  const systemRequirementsParse = await systemRequirementQuery
+    .equalTo("itemType", SYSTEM_CHILD_REQUIREMENT_ITEM_TYPE_ID) // 系统子需求事项类型
+    .equalTo(`values.${FILTER_KEY}`, FILTER_VALUE) // 根据过滤字段查询
+    .findAll({ sessionToken });
+
+  const systemRequirementWorkspaces = systemRequirementsParse?.map(systemRequirement =>
+    systemRequirement.toJSON().values[KEY][0]
+  ) || [];
+
+  printLogs("可投产的系统子需求所属系统查询完成，数据为", systemRequirementWorkspaces);
+
+
   printLogs("查询系统上线计划事项类型");
   // 获取系统上线计划事项类型
   const systemReleaseApprovalType = await apis.getData(false, "ItemType", {
@@ -80,7 +102,7 @@ try {
   printLogs("生成批量创建系统上线计划事项请求");
 
   // 生成创建系统上线计划请求
-  const createSystemReleaseApprovalRequests = shejixitong?.map(
+  const createSystemReleaseApprovalRequests = shejixitong?.filter(id => systemRequirementWorkspaces.includes(id))?.map(
     (relateSystemId) => {
       return new Promise(async (resolve, reject) => {
         printLogs(`查询 ${relateSystemId} 系统事项数据`);

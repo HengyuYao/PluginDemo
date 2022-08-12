@@ -165,7 +165,7 @@ try {
   const releaseApproval = releaseApprovalParse.toJSON();
 
   // 涉及系统
-  const { shejixitong } = releaseApproval?.values;
+  const { shejixitong, r_remote_field_user, r_remote_field_dep } = releaseApproval?.values;
 
   printLogs(
     `${systemReleaseApprovalKey} 所属上线计划事项数据查询完毕，数据为`,
@@ -186,6 +186,21 @@ try {
   printLogs(
     `系统上线计划涉及系统 ${shejixitong} 详细数据查询完毕，数据为`,
     systemItems
+  );
+
+  printLogs(`查询上线计划提出部门 ${r_remote_field_dep} 相关数据`);
+
+  const DepartmentQuery = await apis.getParseQuery(false, "Group");
+
+  const DepartmentsParse = await DepartmentQuery
+    .containedIn("objectId", r_remote_field_dep) // id为涉及系统引用字段关联的数据
+    .findAll({ sessionToken });
+
+  const departments = DepartmentsParse?.map((system) => system.toJSON());
+
+  printLogs(
+    `系统上线计划提出部门 ${r_remote_field_dep} 详细数据查询完毕，数据为`,
+    departments
   );
 
   const SYNC_DATA_TO_ITSM = {
@@ -216,6 +231,12 @@ try {
     business_intention_number, // 业务意向编号
     business_requirement_name, // 业务需求标题
     business_requirement_number, // 业务需求编号
+    demand_proponent: r_remote_field_user
+      ?.map((user) => user.username)
+      ?.join(","), // 提出人
+    demand_department: departments
+      ?.map(group => group.name)
+      ?.join(","), // 提出部门
   };
 
   printLogs(
