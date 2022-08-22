@@ -81,6 +81,7 @@ try {
   const systemRequirementsParse = await systemRequirementQuery
     .equalTo("itemType", SYSTEM_CHILD_REQUIREMENT_ITEM_TYPE_ID) // 系统子需求事项类型
     .equalTo(`values.${FILTER_KEY}`, FILTER_VALUE) // 根据过滤字段查询
+    .containedIn("ancestors", [businessRequirementId]) // 在业务需求之下
     .findAll({ sessionToken });
 
   const systemRequirementWorkspaces = systemRequirementsParse?.map(systemRequirement =>

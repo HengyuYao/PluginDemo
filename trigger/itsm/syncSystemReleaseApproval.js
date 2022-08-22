@@ -101,13 +101,13 @@ try {
       ItemCode: systemReleaseApprovalItemCode, // 事项编号
       Degree_of_urgency, // 紧急程度
       onlinetime, // 上线日期
-      system_identification, // 系统标识
       system_manager, // 系统负责人
       editor_story_desc, // 需求描述
       change_scope, // 变更范围
       improtance_degree, // 重要程度
       radio_online_report, // 报备
       dropdown_production_type, // 投产类型
+      suoshuxitong, // 所属系统
     } = {},
     objectId: systemReleaseApprovalId,
   } = systemReleaseApproval;
@@ -121,6 +121,25 @@ try {
   });
 
   printLogs(`获取 ${systemReleaseApprovalKey} 所属业务意向事项数据`);
+
+  // 获取到系统类型事项数据
+  const relateSystemParse = await apis.getData(false, "Item", {
+    objectId: suoshuxitong[0],
+  });
+
+  const relateSystem = relateSystemParse.toJSON();
+
+  printLogs(
+    `${suoshuxitong[0]} 系统事项数据查询完成，数据为`,
+    relateSystem
+  );
+
+  // 解析系统事项中需要的数据
+  const {
+    values: {
+      ItemCode: system_identification, // 事项编号 - 系统标识
+    },
+  } = relateSystem;
 
   const businessIntentionParse = await apis.getData(false, "Item", {
     objectId: business_intention_id,

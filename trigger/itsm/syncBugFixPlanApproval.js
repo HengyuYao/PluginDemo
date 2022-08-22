@@ -129,6 +129,8 @@ try {
   const {
     values: {
       ItemCode: online_bug_number, // 缺陷事项编号
+      defect_finder,
+      r_remote_field_dep
     },
     name: online_bug_name, // 缺陷标题
   } = onlineBug;
@@ -147,6 +149,21 @@ try {
   printLogs(
     `缺陷上线计划涉及系统 ${bugfixPlanKey} 所属空间对应的系统清单事项数据查询完成，数据为`,
     systemItem
+  );
+
+  printLogs(`查询生产缺陷提出部门 ${r_remote_field_dep} 相关数据`);
+
+  const DepartmentQuery = await apis.getParseQuery(false, "Group");
+
+  const DepartmentsParse = await DepartmentQuery
+    .containedIn("objectId", r_remote_field_dep) // id为涉及系统引用字段关联的数据
+    .findAll({ sessionToken });
+
+  const departments = DepartmentsParse?.map((system) => system.toJSON());
+
+  printLogs(
+    `缺陷上线计划提出部门 ${r_remote_field_dep} 详细数据查询完毕，数据为`,
+    departments
   );
 
   const {
@@ -175,6 +192,12 @@ try {
     system_identification, // 系统标识
     business_requirement_name: online_bug_name, // 生产缺陷标题
     business_requirement_number: online_bug_number, // 生产缺陷编号
+    demand_proponent: defect_finder
+      ?.map((user) => user.username)
+      ?.join(","), // 提出人
+    demand_department: departments
+      ?.map(group => group.name)
+      ?.join(","), // 提出部门
   };
 
   printLogs("向ITSM传递的系统上线计划数据整合完成，数据为", SYNC_DATA_TO_ITSM);
