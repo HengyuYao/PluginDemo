@@ -71,7 +71,7 @@ function convertFieldToArray(attachments, ATTACHMENT_TYPE) {
   const type = ATTACHMENT_FILE_CODE_ENUM[ATTACHMENT_TYPE];
 
   // 只取所需字段
-  return attachments?.map(({ name, url }) => ({ name, url, type }));
+  return attachments?.map(({ name, url, href }) => ({ name, url: url || href, type }));
 }
 
 try {

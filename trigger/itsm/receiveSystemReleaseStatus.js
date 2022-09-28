@@ -45,6 +45,11 @@ const UPLOAD_ATTACHMENTS_STATUS_ID = "E58x6y7GrN";
 
 const UPLOAD_ATTACHMENTS_STATUS_NAME = "上传材料";
 
+// 【待验证】事项状态id与名称
+const AWAIT_VERIFY_STATUS_ID = "iGb2eGZ3Yy";
+
+const AWAIT_VERIFY_STATUS_NAME = "待验证";
+
 // 【待投产】事项状态id
 const WILL_RELEASE_STATUS_ID = "KFHC1wdKm6";
 
@@ -132,13 +137,22 @@ try {
 
   // 根据条件判断，是否需要额外处理目标状态
   if (
-    status === 1 && // 评估通过状态
     releasePlan?.itemType?.objectId === BUG_RELEASE_ITEM_TYPE_ID // 事项类型是缺陷上线计划
   ) {
-    // 重置目标状态ID和名称，指向【上传材料】
-    TARGET_STATUS_ID = UPLOAD_ATTACHMENTS_STATUS_ID;
 
-    TARGET_STATUS_NAME = UPLOAD_ATTACHMENTS_STATUS_NAME;
+    if (status === 1) {
+      // 重置目标状态ID和名称，指向【上传材料】
+      TARGET_STATUS_ID = UPLOAD_ATTACHMENTS_STATUS_ID;
+
+      TARGET_STATUS_NAME = UPLOAD_ATTACHMENTS_STATUS_NAME;
+    }
+
+    if (status === 3) {
+      // 重置目标状态ID和名称，指向【待验证】
+      TARGET_STATUS_ID = AWAIT_VERIFY_STATUS_ID;
+
+      TARGET_STATUS_NAME = AWAIT_VERIFY_STATUS_NAME;
+    }
   }
 
   printLogs(
