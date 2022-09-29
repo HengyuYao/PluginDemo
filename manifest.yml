@@ -62,6 +62,9 @@ modules:
     # 发送待办消息列表
     - key: syncBacklogs
       function: sync-backlogs
+    # 删除待办消息列表
+    -key: syncDeleteBacklogs
+     function: sync-delete-backlogs
   function:
     # 创建系统上线计划
     - key: create-SystemReleaseApproval
@@ -105,8 +108,20 @@ modules:
     # 发送待办消息列表
     - key: sync-backlogs
       handler: /trigger/oa/syncBacklogs.js
+    # 删除代办消息列表
+    - key: sync-delete-backlogs
+      handler: /trigger/oa/syncDeleteBacklogs.js
     - key: hs-heap-bar
       handler: /functions/hs-heap-bar.js
+tables:
+  - className: TodoRecord
+    fields:
+      itemId:
+        type: String
+      affairId:
+        type: String
+      extraParam:
+        type: Object
 resources:
   - key: hs-heap-bar-chart
     path: ./dist/hs-heap-bar-chart

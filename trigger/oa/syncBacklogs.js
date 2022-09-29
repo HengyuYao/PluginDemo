@@ -515,6 +515,17 @@ try {
 
   printLogs("徽商待办事项推送完成，徽商响应信息为", result?.data);
 
+
+  const todoRecords = [];
+  for( const record of (REQUEST_PARAMS?.backList || [])) {
+    const build = await apis.getParseObject(true, 'TodoRecord');
+    build.set('itemId', itemId);
+    build.set('affairId', record?.affairId);
+    todoRecords.push(build);
+  };
+
+  apis.saveAllObject(todoRecords);
+
   return {
     result: result?.data,
     data: REQUEST_PARAMS,
