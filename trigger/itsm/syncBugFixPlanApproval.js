@@ -18,7 +18,7 @@ function convertRichText(richText) {
 
   return richText.reduce((prev, rich) => {
     // 只转换文本类型
-    if (["paragraph", "p"].includes(rich?.type)) {
+    if (["paragraph", "p", "h1","h2","h3","h4","h5","h6"].includes(rich?.type)) { //标题类型判断
       // 遍历富文本对象的children，把文本内容取出来，用 \n 连接
       const pureText = rich?.children?.map(({ text }) => text)?.join("\n");
       return prev + pureText;
